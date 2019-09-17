@@ -1,4 +1,4 @@
-package eu.arrowhead.client;
+package eu.arrowhead.client.misc;
 
 import eu.arrowhead.client.utils.LogUtils;
 import org.apache.logging.log4j.Level;
@@ -11,16 +11,18 @@ import java.util.Properties;
 
 public enum Protocols
 {
-    HTTP("http.properties", false),
-    HTTPS("https.properties", true);
+    HTTP("http.properties", false, new HttpTransport()),
+    HTTPS("https.properties", true, new HttpTransport());
 
     private final Logger logger = LogManager.getLogger();
     private final Properties properties;
     private final boolean secure;
+    private final Transport transport;
 
-    Protocols(final String configFile, final boolean secure)
+    Protocols(final String configFile, final boolean secure, final Transport transport)
     {
         this.secure = secure;
+        this.transport = transport;
         properties = new Properties();
         try
         {
@@ -49,5 +51,10 @@ public enum Protocols
     public boolean isSecure()
     {
         return secure;
+    }
+
+    public Transport getTransport()
+    {
+        return transport;
     }
 }

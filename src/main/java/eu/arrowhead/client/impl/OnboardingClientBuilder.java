@@ -1,7 +1,7 @@
-package eu.arrowhead.client.spi;
+package eu.arrowhead.client.impl;
 
 import eu.arrowhead.client.OnboardingClient;
-import eu.arrowhead.client.Protocols;
+import eu.arrowhead.client.misc.Protocols;
 import eu.arrowhead.client.utils.SSLContextConfigurator;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -66,9 +66,9 @@ public class OnboardingClientBuilder
 
     public OnboardingClient build()
     {
-        final OnboardingClient client;
         try
         {
+            final OnboardingClient onboardingClient;
             final InetAddress inetAddress = InetAddress.getByName(address);
 
             if (protocol.isSecure())
@@ -95,18 +95,18 @@ public class OnboardingClientBuilder
                     sslContext = configurator.createSSLContext(true);
                 }
 
-                client = new OnboardingClientImpl(sslContext, protocol, inetAddress, retries);
+                onboardingClient = new OnboardingClientImpl(protocol, inetAddress, retries, sslContext);
             }
             else
             {
-                client = new OnboardingClientImpl(protocol, inetAddress, retries);
+                onboardingClient = new OnboardingClientImpl(protocol, inetAddress, retries);
             }
+
+            return onboardingClient;
         }
         catch (Throwable e)
         {
             throw new RuntimeException(e);
         }
-
-        return client;
     }
 }

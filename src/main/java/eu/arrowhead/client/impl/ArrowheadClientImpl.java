@@ -1,4 +1,4 @@
-package eu.arrowhead.client.spi;
+package eu.arrowhead.client.impl;
 
 import eu.arrowhead.client.ArrowheadClient;
 

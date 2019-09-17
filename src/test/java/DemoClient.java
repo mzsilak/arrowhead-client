@@ -1,5 +1,5 @@
 import eu.arrowhead.client.OnboardingClient;
-import eu.arrowhead.client.Protocols;
+import eu.arrowhead.client.misc.Protocols;
 
 import java.net.UnknownHostException;
 
