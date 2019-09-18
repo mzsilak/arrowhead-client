@@ -1,6 +1,7 @@
 package eu.arrowhead.client.misc;
 
-public interface Method<RETURN>
+@FunctionalInterface
+public interface TransportInvocation<RETURN>
 {
 
     RETURN invoke() throws TransportException;

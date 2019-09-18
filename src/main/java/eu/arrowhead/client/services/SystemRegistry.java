@@ -1,11 +1,13 @@
 package eu.arrowhead.client.services;
 
 
-import javax.imageio.spi.ServiceRegistry;
+import eu.arrowhead.client.misc.TransportException;
+import eu.arrowhead.client.services.request.SystemRegistryEntry;
 
 public interface SystemRegistry extends ArrowheadClientFacet
 {
-    ServiceRegistry registerSystem();
-    DeviceRegistry removeSystem();
+    SystemRegistryEntry registerSystem(final SystemRegistryEntry request) throws TransportException;
+
+    SystemRegistryEntry removeSystem(final SystemRegistryEntry request) throws TransportException;
 
 }

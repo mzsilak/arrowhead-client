@@ -1,5 +1,5 @@
 import eu.arrowhead.client.OnboardingClient;
-import eu.arrowhead.client.misc.Protocols;
+import eu.arrowhead.client.misc.ProtocolConfiguration;
 
 import java.net.UnknownHostException;
 
@@ -7,7 +7,7 @@ public class DemoClient
 {
     public static void main(String[] args) throws UnknownHostException
     {
-        final OnboardingClient client = OnboardingClient.withProtocol(Protocols.HTTPS)
+        final OnboardingClient client = OnboardingClient.withProtocol(ProtocolConfiguration.HTTPS)
                                                         .withOnboardingAddress("localhost")
                                                         .withRetries(3)
                                                         .build();

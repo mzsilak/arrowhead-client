@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public enum Protocols
+public enum ProtocolConfiguration
 {
     HTTP("http.properties", false, new HttpTransport()),
     HTTPS("https.properties", true, new HttpTransport());
@@ -19,7 +19,7 @@ public enum Protocols
     private final boolean secure;
     private final Transport transport;
 
-    Protocols(final String configFile, final boolean secure, final Transport transport)
+    ProtocolConfiguration(final String configFile, final boolean secure, final Transport transport)
     {
         this.secure = secure;
         this.transport = transport;
@@ -56,5 +56,10 @@ public enum Protocols
     public Transport getTransport()
     {
         return transport;
+    }
+
+    public String getScheme()
+    {
+        return name().toLowerCase();
     }
 }

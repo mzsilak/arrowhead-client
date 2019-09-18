@@ -1,34 +1,101 @@
 package eu.arrowhead.client.impl;
 
 import eu.arrowhead.client.OnboardingClient;
-import eu.arrowhead.client.misc.Protocols;
+import eu.arrowhead.client.misc.ProtocolConfiguration;
 import eu.arrowhead.client.utils.SSLContextConfigurator;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class OnboardingClientBuilder
 {
 
-    private final Protocols protocol;
+    private final ProtocolConfiguration protocol;
     private String address = "localhost";
     private int retries = 3;
-    private SSLContext context;
+    private long delayBetweenRetries = 5;
+    private TimeUnit timeUnitForRetries = TimeUnit.SECONDS;
+
+    private SSLContext sslContext;
     private SSLContextConfigurator configurator;
     private TrustManagerFactory trustManagerFactory;
     private KeyManagerFactory keyManagerFactory;
 
-    public OnboardingClientBuilder(final Protocols protocol)
+    public OnboardingClientBuilder(final ProtocolConfiguration protocol)
     {
         this.protocol = protocol;
+    }
+
+    ProtocolConfiguration getProtocol()
+    {
+        return protocol;
+    }
+
+    InetAddress getAddress()
+    {
+        try
+        {
+            return InetAddress.getByName(address);
+        }
+        catch (UnknownHostException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    int getRetries()
+    {
+        return retries;
+    }
+
+    long getDelayBetweenRetries()
+    {
+        return delayBetweenRetries;
+    }
+
+    TimeUnit getTimeUnitForRetries()
+    {
+        return timeUnitForRetries;
+    }
+
+    SSLContext getSslContext()
+    {
+        createSslContext();
+        return sslContext;
+    }
+
+    SSLContextConfigurator getConfigurator()
+    {
+        return configurator;
+    }
+
+    TrustManagerFactory getTrustManagerFactory()
+    {
+        return trustManagerFactory;
+    }
+
+    KeyManagerFactory getKeyManagerFactory()
+    {
+        return keyManagerFactory;
     }
 
     public OnboardingClientBuilder withOnboardingAddress(final String address)
     {
         this.address = address;
+        return this;
+    }
+
+    public OnboardingClientBuilder withDelayBetweenRetries(final long number, final TimeUnit unit)
+    {
+        this.delayBetweenRetries = number;
+        this.timeUnitForRetries = unit;
         return this;
     }
 
@@ -46,7 +113,7 @@ public class OnboardingClientBuilder
 
     public OnboardingClientBuilder withSSLContext(final SSLContext context)
     {
-        this.context = context;
+        this.sslContext = context;
         return this;
     }
 
@@ -64,21 +131,14 @@ public class OnboardingClientBuilder
         return this;
     }
 
-    public OnboardingClient build()
+    private void createSslContext()
     {
         try
         {
-            final OnboardingClient onboardingClient;
-            final InetAddress inetAddress = InetAddress.getByName(address);
 
-            if (protocol.isSecure())
+            if (Objects.isNull(sslContext))
             {
-                final SSLContext sslContext;
-                if (Objects.nonNull(context))
-                {
-                    sslContext = context;
-                }
-                else if (Objects.nonNull(configurator))
+                if (Objects.nonNull(configurator))
                 {
                     sslContext = configurator.createSSLContext(true);
                 }
@@ -94,19 +154,17 @@ public class OnboardingClientBuilder
                     configurator = new SSLContextConfigurator(true);
                     sslContext = configurator.createSSLContext(true);
                 }
-
-                onboardingClient = new OnboardingClientImpl(protocol, inetAddress, retries, sslContext);
             }
-            else
-            {
-                onboardingClient = new OnboardingClientImpl(protocol, inetAddress, retries);
-            }
-
-            return onboardingClient;
         }
         catch (Throwable e)
         {
             throw new RuntimeException(e);
         }
+    }
+
+    public OnboardingClient build()
+    {
+        createSslContext();
+        return new OnboardingClientImpl(protocol, getAddress(), this);
     }
 }

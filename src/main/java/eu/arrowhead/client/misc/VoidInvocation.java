@@ -1,6 +1,6 @@
 package eu.arrowhead.client.misc;
 
-public interface VoidMethod
+public interface VoidInvocation
 {
 
     void invoke() throws TransportException;

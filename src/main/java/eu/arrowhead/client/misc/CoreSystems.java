@@ -1,0 +1,6 @@
+package eu.arrowhead.client.misc;
+
+public enum CoreSystems
+{
+    ONBOARDING_CONTROLLER, DEVICE_REGISTRY, SYSTEM_REGISTRY, SERVICE_REGISTRY, ORCHESTRATOR, EVENT_HANDLER
+}

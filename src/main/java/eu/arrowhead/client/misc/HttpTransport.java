@@ -1,19 +1,25 @@
 package eu.arrowhead.client.misc;
 
 import eu.arrowhead.client.utils.LogUtils;
+import eu.arrowhead.client.utils.ThreadUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 public class HttpTransport implements Transport
 {
     private final Logger logger = LogManager.getLogger();
     private final RestTemplate restTemplate;
     private int maxRetries;
+    private long delayBetweenRetries;
+    private TimeUnit timeUnitForRetries;
 
     public HttpTransport()
     {
@@ -26,7 +32,14 @@ public class HttpTransport implements Transport
         this.maxRetries = maxRetries;
     }
 
-    private <T> T invoke(final Method<T> method) throws TransportException
+    @Override
+    public void setDelayBetweenRetries(final long delayBetweenRetries, final TimeUnit timeUnitForRetries)
+    {
+        this.delayBetweenRetries = delayBetweenRetries;
+        this.timeUnitForRetries = timeUnitForRetries;
+    }
+
+    private <T> T invoke(final TransportInvocation<T> method) throws TransportException
     {
         Throwable throwable = null;
         for (int i = 0; i < maxRetries; i++)
@@ -40,13 +53,16 @@ public class HttpTransport implements Transport
                 logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
                 throwable = e;
             }
+
+            logger.info("Sleeping {} {} before retry ...", delayBetweenRetries, timeUnitForRetries.name());
+            ThreadUtils.sleep(delayBetweenRetries, timeUnitForRetries);
         }
 
         LogUtils.printShortStackTrace(logger, Level.ERROR, throwable);
         throw new TransportException(throwable);
     }
 
-    private void invokeVoid(final VoidMethod method) throws TransportException
+    private void invokeVoid(final VoidInvocation method) throws TransportException
     {
         Throwable throwable = null;
         for (int i = 0; i < maxRetries; i++)
@@ -101,6 +117,19 @@ public class HttpTransport implements Transport
     public <B> void put(final URI uri, final B body, final Object... pathParameters) throws TransportException
     {
         invokeVoid(() -> restTemplate.put(uri.toASCIIString(), body, pathParameters));
+    }
+
+    @Override
+    public <T, B> T put(final Class<T> cls, final URI uri, final B body) throws TransportException
+    {
+        return invoke(() -> restTemplate.exchange(uri, HttpMethod.PUT, new HttpEntity<>(body), cls)).getBody();
+    }
+
+    @Override
+    public <T, B> T put(final Class<T> cls, final URI uri, final B body, final Object... pathParameters) throws TransportException
+    {
+        return invoke(() -> restTemplate.exchange(uri.toASCIIString()
+                , HttpMethod.PUT, new HttpEntity<>(body), cls, pathParameters)).getBody();
     }
 
     @Override

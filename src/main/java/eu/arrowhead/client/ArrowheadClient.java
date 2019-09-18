@@ -4,7 +4,7 @@ import eu.arrowhead.client.services.*;
 
 public interface ArrowheadClient
 {
-    OnboardingClient onboardingClient();
+    OnboardingController onboardingController();
 
     DeviceRegistry deviceRegistry();
 
