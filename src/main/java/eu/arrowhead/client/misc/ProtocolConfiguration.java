@@ -11,22 +11,22 @@ import java.util.Properties;
 
 public enum ProtocolConfiguration
 {
-    HTTP("http.properties", false, new HttpTransport()),
-    HTTPS("https.properties", true, new HttpTransport());
+    HTTP("http.properties", false, HttpTransport::new),
+    HTTPS("https.properties", true, HttpTransport::new);
 
     private final Logger logger = LogManager.getLogger();
+    private final TransportFactory transportFactory;
     private final Properties properties;
     private final boolean secure;
-    private final Transport transport;
 
-    ProtocolConfiguration(final String configFile, final boolean secure, final Transport transport)
+    ProtocolConfiguration(final String configFile, final boolean secure, final TransportFactory transportFactory)
     {
         this.secure = secure;
-        this.transport = transport;
+        this.transportFactory = transportFactory;
         properties = new Properties();
         try
         {
-            try (final InputStream inputStream = getClass().getResourceAsStream(configFile))
+            try (final InputStream inputStream = getClass().getClassLoader().getResourceAsStream(configFile))
             {
                 properties.load(inputStream);
             }
@@ -55,7 +55,7 @@ public enum ProtocolConfiguration
 
     public Transport getTransport()
     {
-        return transport;
+        return transportFactory.get();
     }
 
     public String getScheme()

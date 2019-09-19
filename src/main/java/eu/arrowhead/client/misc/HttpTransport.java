@@ -62,7 +62,7 @@ public class HttpTransport implements Transport
         throw new TransportException(throwable);
     }
 
-    private void invokeVoid(final VoidInvocation method) throws TransportException
+    private void invokeVoid(final VoidTransportInvocation method) throws TransportException
     {
         Throwable throwable = null;
         for (int i = 0; i < maxRetries; i++)

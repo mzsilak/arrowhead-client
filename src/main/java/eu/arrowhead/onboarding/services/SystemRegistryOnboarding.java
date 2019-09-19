@@ -1,4 +1,4 @@
-package eu.arrowhead.client.services;
+package eu.arrowhead.onboarding.services;
 
 
 import eu.arrowhead.client.misc.TransportException;

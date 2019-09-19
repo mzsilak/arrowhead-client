@@ -1,6 +1,6 @@
-package eu.arrowhead.client.impl;
+package eu.arrowhead.onboarding.impl;
 
-import eu.arrowhead.client.OnboardingClient;
+import eu.arrowhead.onboarding.OnboardingClient;
 import eu.arrowhead.client.misc.ProtocolConfiguration;
 import eu.arrowhead.client.utils.SSLContextConfigurator;
 
@@ -9,8 +9,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -135,7 +133,6 @@ public class OnboardingClientBuilder
     {
         try
         {
-
             if (Objects.isNull(sslContext))
             {
                 if (Objects.nonNull(configurator))

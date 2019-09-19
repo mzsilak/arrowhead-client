@@ -9,6 +9,8 @@ import eu.arrowhead.client.services.response.OnboardingResponse;
 
 public interface OnboardingController extends ArrowheadClientFacet
 {
+    String SYSTEM_SUFFIX = "onboarding";
+    String PORT_PROPERTY = "onboarding.port";
 
     OnboardingResponse plain(final OnboardingRequest request) throws TransportException;
 

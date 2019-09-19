@@ -7,9 +7,16 @@ import eu.arrowhead.client.services.request.ServiceRegistryQuery;
 
 public interface ServiceRegistry extends ArrowheadClientFacet
 {
-    ServiceRegistry query(final ServiceRegistryQuery request) throws TransportException;
+    String SYSTEM_SUFFIX = "serviceregistry";
+    String PORT_PROPERTY = "service_registry.port";
 
-    ServiceRegistry registerService(final ServiceRegistryEntry request) throws TransportException;
+    String METHOD_QUERY_SUFFIX = "query";
+    String METHOD_REGISTER_SUFFIX = "register";
+    String METHOD_REMOVE_SUFFIX = "remove";
 
-    ServiceRegistry removeService(final ServiceRegistryEntry request) throws TransportException;
+    ServiceRegistryEntry query(final ServiceRegistryQuery request) throws TransportException;
+
+    ServiceRegistryEntry registerService(final ServiceRegistryEntry request) throws TransportException;
+
+    ServiceRegistryEntry removeService(final ServiceRegistryEntry request) throws TransportException;
 }

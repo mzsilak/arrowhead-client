@@ -35,16 +35,19 @@ public class LogUtils
         printElements(logger, level, maxElements, root.getStackTrace());
 
         Throwable current = root.getCause();
-        for (int i = 0; i < depth; i++)
+        if (Objects.nonNull(current))
         {
-            logger.log(level, CAUSED_BY_PREFIX, exceptionAndType(current));
-            printElements(logger, level, maxElements, current.getStackTrace());
-            if (Objects.equals(current, current.getCause())
-                    || Objects.isNull(current.getCause()))
+            for (int i = 0; i < depth; i++)
             {
-                break;
+                logger.log(level, CAUSED_BY_PREFIX, exceptionAndType(current));
+                printElements(logger, level, maxElements, current.getStackTrace());
+                if (Objects.equals(current, current.getCause())
+                        || Objects.isNull(current.getCause()))
+                {
+                    break;
+                }
+                current = current.getCause();
             }
-            current = current.getCause();
         }
     }
 

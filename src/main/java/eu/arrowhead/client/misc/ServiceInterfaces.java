@@ -1,7 +1,5 @@
 package eu.arrowhead.client.misc;
 
-import com.sun.org.apache.bcel.internal.generic.RETURN;
-
 public enum ServiceInterfaces
 {
     JSON;

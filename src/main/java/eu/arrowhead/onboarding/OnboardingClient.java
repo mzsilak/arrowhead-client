@@ -1,12 +1,12 @@
-package eu.arrowhead.client;
+package eu.arrowhead.onboarding;
 
 import eu.arrowhead.client.misc.ProtocolConfiguration;
 import eu.arrowhead.client.misc.TransportException;
-import eu.arrowhead.client.services.DeviceRegistryOnboarding;
+import eu.arrowhead.onboarding.services.DeviceRegistryOnboarding;
 import eu.arrowhead.client.services.request.OnboardingRequest;
 import eu.arrowhead.client.services.request.OnboardingWithCertificateRequest;
 import eu.arrowhead.client.services.request.OnboardingWithSharedKeyRequest;
-import eu.arrowhead.client.impl.OnboardingClientBuilder;
+import eu.arrowhead.onboarding.impl.OnboardingClientBuilder;
 
 public interface OnboardingClient
 {

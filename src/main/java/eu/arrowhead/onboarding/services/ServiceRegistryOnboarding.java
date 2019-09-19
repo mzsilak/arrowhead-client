@@ -1,8 +1,9 @@
-package eu.arrowhead.client.services;
+package eu.arrowhead.onboarding.services;
 
 
 import eu.arrowhead.client.ArrowheadClient;
 import eu.arrowhead.client.misc.TransportException;
+import eu.arrowhead.client.services.ArrowheadClientFacet;
 import eu.arrowhead.client.services.request.ServiceRegistryEntry;
 import eu.arrowhead.client.services.request.ServiceRegistryQuery;
 
