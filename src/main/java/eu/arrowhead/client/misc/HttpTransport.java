@@ -58,7 +58,7 @@ public class HttpTransport implements Transport
             ThreadUtils.sleep(delayBetweenRetries, timeUnitForRetries);
         }
 
-        LogUtils.printShortStackTrace(logger, Level.ERROR, throwable);
+        LogUtils.printLongStackTrace(logger, Level.ERROR, throwable);
         throw new TransportException(throwable);
     }
 
@@ -78,7 +78,7 @@ public class HttpTransport implements Transport
             }
         }
 
-        LogUtils.printShortStackTrace(logger, Level.ERROR, throwable);
+        LogUtils.printLongStackTrace(logger, Level.ERROR, throwable);
         throw new TransportException(throwable);
     }
 

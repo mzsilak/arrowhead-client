@@ -2,6 +2,7 @@ import eu.arrowhead.client.misc.ProtocolConfiguration;
 import eu.arrowhead.client.misc.TransportException;
 import eu.arrowhead.client.services.request.DeviceRegistryEntry;
 import eu.arrowhead.client.services.request.OnboardingRequest;
+import eu.arrowhead.client.services.request.OnboardingWithSharedKeyRequest;
 import eu.arrowhead.client.services.request.SystemRegistryEntry;
 import eu.arrowhead.onboarding.OnboardingClient;
 import eu.arrowhead.onboarding.services.DeviceRegistryOnboarding;
@@ -22,7 +23,8 @@ public class DemoClient
 
         try
         {
-            final DeviceRegistryOnboarding deviceRegistryOnboarding = client.plain(new OnboardingRequest("client"));
+            final DeviceRegistryOnboarding deviceRegistryOnboarding = client.withSharedKey(
+                    new OnboardingWithSharedKeyRequest("client", "password"));
             final SystemRegistryOnboarding systemRegistryOnboarding = deviceRegistryOnboarding
                     .registerSystem(new DeviceRegistryEntry("00:00:00:00:00:00", LocalDateTime.MAX, "device"));
             systemRegistryOnboarding.registerSystem(new SystemRegistryEntry());
