@@ -31,4 +31,14 @@ public class ServiceEndpoint
     {
         this.uri = uri;
     }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("ServiceEndpoint [");
+        sb.append("system=").append(system);
+        sb.append(", uri=").append(uri);
+        sb.append(']');
+        return sb.toString();
+    }
 }

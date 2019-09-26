@@ -1,5 +1,6 @@
-package eu.arrowhead.client.misc;
+package eu.arrowhead.client.transport;
 
+import eu.arrowhead.client.transport.http.HttpTransport;
 import eu.arrowhead.client.utils.LogUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

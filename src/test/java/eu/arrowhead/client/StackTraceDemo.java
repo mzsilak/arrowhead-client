@@ -1,3 +1,5 @@
+package eu.arrowhead.client;
+
 import eu.arrowhead.client.utils.LogUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

@@ -1,7 +1,7 @@
 package eu.arrowhead.onboarding;
 
-import eu.arrowhead.client.misc.ProtocolConfiguration;
-import eu.arrowhead.client.misc.TransportException;
+import eu.arrowhead.client.transport.ProtocolConfiguration;
+import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.onboarding.services.DeviceRegistryOnboarding;
 import eu.arrowhead.client.services.request.OnboardingRequest;
 import eu.arrowhead.client.services.request.OnboardingWithCertificateRequest;

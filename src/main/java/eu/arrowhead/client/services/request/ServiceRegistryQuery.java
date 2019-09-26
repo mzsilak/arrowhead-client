@@ -66,4 +66,16 @@ public class ServiceRegistryQuery
     {
         this.version = version;
     }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("ServiceRegistryQuery [");
+        sb.append("service=").append(service);
+        sb.append(", pingProviders=").append(pingProviders);
+        sb.append(", metadataSearch=").append(metadataSearch);
+        sb.append(", version=").append(version);
+        sb.append(']');
+        return sb.toString();
+    }
 }

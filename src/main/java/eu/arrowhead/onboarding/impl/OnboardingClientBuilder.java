@@ -1,8 +1,10 @@
 package eu.arrowhead.onboarding.impl;
 
 import eu.arrowhead.onboarding.OnboardingClient;
-import eu.arrowhead.client.misc.ProtocolConfiguration;
+import eu.arrowhead.client.transport.ProtocolConfiguration;
 import eu.arrowhead.client.utils.SSLContextConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -14,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 public class OnboardingClientBuilder
 {
+    private final Logger logger = LogManager.getLogger();
 
     private final ProtocolConfiguration protocol;
     private String address = "localhost";
@@ -28,6 +31,7 @@ public class OnboardingClientBuilder
 
     public OnboardingClientBuilder(final ProtocolConfiguration protocol)
     {
+        logger.debug("Creating new {} with protocol {}", getClass().getSimpleName(), protocol);
         this.protocol = protocol;
     }
 
@@ -137,20 +141,27 @@ public class OnboardingClientBuilder
             {
                 if (Objects.nonNull(configurator))
                 {
+                    logger.debug("Creating new {} with configurator {}", SSLContext.class.getSimpleName(), configurator);
                     sslContext = configurator.createSSLContext(true);
                 }
                 else if (Objects.nonNull(keyManagerFactory) || Objects.nonNull(trustManagerFactory))
                 {
-
+                    logger.debug("Creating new {} with KeyManagerFactory {}, and TrustManagerFactory {}",
+                                 SSLContext.class.getSimpleName(), keyManagerFactory, trustManagerFactory);
                     sslContext = SSLContext.getInstance("TLS");
                     sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null,
                                     trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null, null);
                 }
                 else
                 {
+                    logger.debug("Creating blank {}", SSLContext.class.getSimpleName());
                     configurator = new SSLContextConfigurator(true);
                     sslContext = configurator.createSSLContext(true);
                 }
+            }
+            else
+            {
+                logger.debug("Using given {}: {}", SSLContext.class.getSimpleName(), sslContext);
             }
         }
         catch (Throwable e)
@@ -161,7 +172,6 @@ public class OnboardingClientBuilder
 
     public OnboardingClient build()
     {
-        createSslContext();
         return new OnboardingClientImpl(protocol, getAddress(), this);
     }
 }

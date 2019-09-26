@@ -11,8 +11,8 @@ public class OnboardingResponse
     private String rootCertificate;
     private String keyAlgorithm;
     private String keyFormat;
-    private byte[] privateKey;
-    private byte[] publicKey;
+    private String privateKey;
+    private String publicKey;
 
     public OnboardingResponse()
     {
@@ -89,22 +89,22 @@ public class OnboardingResponse
         this.keyFormat = keyFormat;
     }
 
-    public byte[] getPrivateKey()
+    public String getPrivateKey()
     {
         return privateKey;
     }
 
-    public void setPrivateKey(final byte[] privateKey)
+    public void setPrivateKey(final String privateKey)
     {
         this.privateKey = privateKey;
     }
 
-    public byte[] getPublicKey()
+    public String getPublicKey()
     {
         return publicKey;
     }
 
-    public void setPublicKey(final byte[] publicKey)
+    public void setPublicKey(final String publicKey)
     {
         this.publicKey = publicKey;
     }

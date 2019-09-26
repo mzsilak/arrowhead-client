@@ -1,18 +1,22 @@
 package eu.arrowhead.onboarding.impl;
 
+import eu.arrowhead.client.impl.OnboardingControllerImpl;
 import eu.arrowhead.client.misc.*;
-import eu.arrowhead.client.services.DeviceRegistry;
-import eu.arrowhead.client.services.Orchestrator;
-import eu.arrowhead.client.services.ServiceRegistry;
-import eu.arrowhead.client.services.SystemRegistry;
+import eu.arrowhead.client.services.*;
 import eu.arrowhead.client.services.model.ServiceEndpoint;
 import eu.arrowhead.client.services.request.OnboardingRequest;
 import eu.arrowhead.client.services.request.OnboardingWithCertificateRequest;
 import eu.arrowhead.client.services.request.OnboardingWithSharedKeyRequest;
 import eu.arrowhead.client.services.response.OnboardingResponse;
-import eu.arrowhead.client.utils.UriUtil;
+import eu.arrowhead.client.transport.ProtocolConfiguration;
+import eu.arrowhead.client.transport.RetryHandler;
+import eu.arrowhead.client.transport.Transport;
+import eu.arrowhead.client.transport.TransportException;
+import eu.arrowhead.client.utils.UriUtils;
 import eu.arrowhead.onboarding.OnboardingClient;
 import eu.arrowhead.onboarding.services.DeviceRegistryOnboarding;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.web.util.UriBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -20,59 +24,64 @@ import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.util.Objects;
 
+import static eu.arrowhead.client.services.OnboardingController.PORT_PROPERTY;
+import static eu.arrowhead.client.services.OnboardingController.SYSTEM_SUFFIX;
+
 public class OnboardingClientImpl implements OnboardingClient
 {
-    public static final String SERVICE_SUFFIX = "onboarding";
-
-    private static final String PORT_PROPERTY = "onboarding.port";
-    private static final String METHOD_PLAIN_SUFFIX = "plain";
-    private static final String METHOD_SHARED_KEY_SUFFIX = "sharedKey";
-    private static final String METHOD_CERTIFICATE_SUFFIX = "certificate";
+    private final Logger logger = LogManager.getLogger();
 
     private final SSLContext sslContext;
     private final ProtocolConfiguration protocol;
     private final Transport transport;
+    private final RetryHandler retryHandler;
     private final SystemEndpointHolder endpointHolder;
-    private final UriUtil uriUtil;
+    private final UriUtils uriUtils;
+    private final OnboardingController onboardingController;
 
     public OnboardingClientImpl(final ProtocolConfiguration protocol, final InetAddress inetAddress, final OnboardingClientBuilder builder)
     {
-        this.uriUtil = new UriUtil(Objects.requireNonNull(protocol), Objects.requireNonNull(inetAddress), protocol.getInt(PORT_PROPERTY), SERVICE_SUFFIX);
+        this.uriUtils = new UriUtils(Objects.requireNonNull(protocol), Objects.requireNonNull(inetAddress), protocol.getInt(PORT_PROPERTY), SYSTEM_SUFFIX);
         this.sslContext = Objects.requireNonNull(builder.getSslContext());
         this.protocol = protocol;
-        transport = protocol.getTransport();
-        transport.setMaxRetries(builder.getRetries());
-        transport.setDelayBetweenRetries(builder.getDelayBetweenRetries(), builder.getTimeUnitForRetries());
+        this.transport = protocol.getTransport();
 
-        endpointHolder = new SystemEndpointHolder(protocol);
-        endpointHolder.add(CoreSystems.ONBOARDING_CONTROLLER, uriUtil.copyBuild());
+        this.retryHandler = new RetryHandler();
+        this.retryHandler.setMaxRetries(builder.getRetries());
+        this.retryHandler.setDelayBetweenRetries(builder.getDelayBetweenRetries(), builder.getTimeUnitForRetries());
+
+        this.endpointHolder = new SystemEndpointHolder(protocol);
+        this.endpointHolder.add(CoreSystems.ONBOARDING_CONTROLLER, uriUtils.copyBuild());
+
+        this.onboardingController = new OnboardingControllerImpl(null, uriUtils.copyBuild(), transport);
+        logger.debug("Created {}", this);
     }
 
     @Override
     public DeviceRegistryOnboarding plain(final OnboardingRequest request) throws TransportException
     {
-        final OnboardingResponse response = transport.post(OnboardingResponse.class, uriUtil.copyBuild(METHOD_PLAIN_SUFFIX), request);
+        final OnboardingResponse response = retryHandler.invoke(() -> onboardingController.plain(request));
         adaptEndpoints(response.getServices());
         adaptSSLContext(response);
-        return new DeviceRegistryOnboardingImpl(this, endpointHolder, transport);
+        return new DeviceRegistryOnboardingImpl(this, endpointHolder, transport, retryHandler);
     }
 
     @Override
     public DeviceRegistryOnboarding withSharedKey(final OnboardingWithSharedKeyRequest request) throws TransportException
     {
-        final OnboardingResponse response = transport.post(OnboardingResponse.class, uriUtil.copyBuild(METHOD_SHARED_KEY_SUFFIX), request);
+        final OnboardingResponse response = retryHandler.invoke(() -> onboardingController.withSharedKey(request));
         adaptEndpoints(response.getServices());
         adaptSSLContext(response);
-        return new DeviceRegistryOnboardingImpl(this, endpointHolder, transport);
+        return new DeviceRegistryOnboardingImpl(this, endpointHolder, transport, retryHandler);
     }
 
     @Override
     public DeviceRegistryOnboarding withCertificate(final OnboardingWithCertificateRequest request) throws TransportException
     {
-        final OnboardingResponse response = transport.post(OnboardingResponse.class, uriUtil.copyBuild(METHOD_CERTIFICATE_SUFFIX), request);
+        final OnboardingResponse response = retryHandler.invoke(() -> onboardingController.withCertificate(request));
         adaptEndpoints(response.getServices());
         adaptSSLContext(response);
-        return new DeviceRegistryOnboardingImpl(this, endpointHolder, transport);
+        return new DeviceRegistryOnboardingImpl(this, endpointHolder, transport, retryHandler);
     }
 
     private void adaptSSLContext(final OnboardingResponse response)
@@ -84,6 +93,7 @@ public class OnboardingClientImpl implements OnboardingClient
         for (ServiceEndpoint endpoint : endpoints)
         {
             UriBuilder builder = UriComponentsBuilder.fromUri(endpoint.getUri());
+            logger.debug("Adapting endpoint of {} to {}", endpoint.getSystem(), builder.build());
 
             switch (endpoint.getSystem())
             {
@@ -105,5 +115,18 @@ public class OnboardingClientImpl implements OnboardingClient
         }
 
         return endpointHolder;
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("OnboardingClientImpl [");
+        sb.append("sslContext=").append(sslContext);
+        sb.append(", protocol=").append(protocol);
+        sb.append(", transport=").append(transport);
+        sb.append(", endpointHolder=").append(endpointHolder);
+        sb.append(", uriUtil=").append(uriUtils);
+        sb.append(']');
+        return sb.toString();
     }
 }

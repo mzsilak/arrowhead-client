@@ -1,7 +1,7 @@
 package eu.arrowhead.client.services;
 
 
-import eu.arrowhead.client.misc.TransportException;
+import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.client.services.request.ServiceRegistryEntry;
 import eu.arrowhead.client.services.request.ServiceRegistryQuery;
 

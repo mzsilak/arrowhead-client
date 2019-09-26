@@ -75,7 +75,7 @@ public class LogUtils
     {
         final StringBuilder sb = new StringBuilder("\tat ");
         sb.append(element.getClassName()).append('.').append(element.getMethodName());
-        sb.append('(').append(element.getFileName()).append(element.getLineNumber()).append(')');
+        sb.append('(').append(element.getFileName()).append(':').append(element.getLineNumber()).append(')');
         return sb.toString();
     }
 }

@@ -40,4 +40,14 @@ public class ArrowheadDevice
     {
         this.deviceName = deviceName;
     }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("ArrowheadDevice [");
+        sb.append("id=").append(id);
+        sb.append(", deviceName='").append(deviceName).append('\'');
+        sb.append(']');
+        return sb.toString();
+    }
 }

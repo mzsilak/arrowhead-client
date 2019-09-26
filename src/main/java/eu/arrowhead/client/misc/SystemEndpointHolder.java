@@ -1,5 +1,7 @@
 package eu.arrowhead.client.misc;
 
+import eu.arrowhead.client.transport.ProtocolConfiguration;
+
 import java.net.URI;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,5 +38,15 @@ public class SystemEndpointHolder
     public ProtocolConfiguration getProtocolConfiguration()
     {
         return protocolConfiguration;
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("SystemEndpointHolder[");
+        sb.append("systems=(").append(systems.size()).append(" entries)");
+        sb.append(", protocolConfiguration=").append(protocolConfiguration);
+        sb.append(']');
+        return sb.toString();
     }
 }

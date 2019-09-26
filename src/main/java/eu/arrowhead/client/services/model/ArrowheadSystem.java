@@ -78,4 +78,17 @@ public class ArrowheadSystem
     {
         this.authenticationInfo = authenticationInfo;
     }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("ArrowheadSystem [");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", systemName='").append(systemName).append('\'');
+        sb.append(", address='").append(address).append('\'');
+        sb.append(", port=").append(port);
+        sb.append(", authenticationInfo='").append(authenticationInfo).append('\'');
+        sb.append(']');
+        return sb.toString();
+    }
 }

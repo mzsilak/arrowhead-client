@@ -9,26 +9,26 @@ public class DeviceRegistryEntry
     private Long id;
     private String macAddress;
     private LocalDateTime endOfValidity;
-    private ArrowheadDevice device;
+    private ArrowheadDevice providedDevice;
 
     public DeviceRegistryEntry()
     {
         super();
     }
 
-    public DeviceRegistryEntry(final String macAddress, final LocalDateTime endOfValidity, final ArrowheadDevice device)
+    public DeviceRegistryEntry(final String macAddress, final LocalDateTime endOfValidity, final ArrowheadDevice providedDevice)
     {
         this.macAddress = macAddress;
         this.endOfValidity = endOfValidity;
-        this.device = device;
+        this.providedDevice = providedDevice;
     }
 
-    public DeviceRegistryEntry(final Long id, final String macAddress, final LocalDateTime endOfValidity, final ArrowheadDevice device)
+    public DeviceRegistryEntry(final Long id, final String macAddress, final LocalDateTime endOfValidity, final ArrowheadDevice providedDevice)
     {
         this.id = id;
         this.macAddress = macAddress;
         this.endOfValidity = endOfValidity;
-        this.device = device;
+        this.providedDevice = providedDevice;
     }
 
 
@@ -36,7 +36,7 @@ public class DeviceRegistryEntry
     {
         this.macAddress = macAddress;
         this.endOfValidity = endOfValidity;
-        this.device = new ArrowheadDevice(deviceName);
+        this.providedDevice = new ArrowheadDevice(deviceName);
     }
 
     public DeviceRegistryEntry(final Long id, final String macAddress, final LocalDateTime endOfValidity, final String deviceName)
@@ -44,7 +44,7 @@ public class DeviceRegistryEntry
         this.id = id;
         this.macAddress = macAddress;
         this.endOfValidity = endOfValidity;
-        this.device = new ArrowheadDevice(deviceName);
+        this.providedDevice = new ArrowheadDevice(deviceName);
     }
 
     public Long getId()
@@ -77,13 +77,25 @@ public class DeviceRegistryEntry
         this.endOfValidity = endOfValidity;
     }
 
-    public ArrowheadDevice getDevice()
+    public ArrowheadDevice getProvidedDevice()
     {
-        return device;
+        return providedDevice;
     }
 
-    public void setDevice(final ArrowheadDevice device)
+    public void setProvidedDevice(final ArrowheadDevice providedDevice)
     {
-        this.device = device;
+        this.providedDevice = providedDevice;
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("DeviceRegistryEntry[");
+        sb.append("id=").append(id);
+        sb.append(", macAddress='").append(macAddress).append('\'');
+        sb.append(", endOfValidity=").append(endOfValidity);
+        sb.append(", device=").append(providedDevice);
+        sb.append(']');
+        return sb.toString();
     }
 }

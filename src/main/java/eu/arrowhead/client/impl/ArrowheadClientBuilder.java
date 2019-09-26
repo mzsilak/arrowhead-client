@@ -1,13 +1,16 @@
 package eu.arrowhead.client.impl;
 
-import eu.arrowhead.client.ArrowheadClient;
+import eu.arrowhead.client.*;
 import eu.arrowhead.client.misc.*;
 import eu.arrowhead.client.services.*;
 import eu.arrowhead.client.services.model.ArrowheadService;
 import eu.arrowhead.client.services.request.ServiceRegistryEntry;
 import eu.arrowhead.client.services.request.ServiceRegistryQuery;
+import eu.arrowhead.client.transport.ProtocolConfiguration;
+import eu.arrowhead.client.transport.Transport;
+import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.client.utils.LogUtils;
-import eu.arrowhead.client.utils.UriUtil;
+import eu.arrowhead.client.utils.UriUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +34,7 @@ public class ArrowheadClientBuilder
     private SystemEndpointHolder endpointHolder;
     private SSLContext sslContext;
     private ServiceRegistry serviceRegistry;
+    private Orchestrator orchestrator;
 
     private ArrowheadClientBuilder(final ProtocolConfiguration protocol, final Transport transport)
     {
@@ -47,8 +51,8 @@ public class ArrowheadClientBuilder
         Objects.requireNonNull(orchestratorAddress);
         Objects.requireNonNull(transport);
 
-        final UriUtil uriUtil = new UriUtil(protocol, orchestratorAddress, protocol.getInt(ServiceRegistry.PORT_PROPERTY), ServiceRegistry.SYSTEM_SUFFIX);
-        return withOrchestrator(protocol, uriUtil.copyBuild(), transport);
+        final UriUtils uriUtils = new UriUtils(protocol, orchestratorAddress, protocol.getInt(ServiceRegistry.PORT_PROPERTY), ServiceRegistry.SYSTEM_SUFFIX);
+        return withOrchestrator(protocol, uriUtils.copyBuild(), transport);
     }
 
     public static ArrowheadClientBuilder withServiceRegistry(final ProtocolConfiguration protocol,
@@ -59,8 +63,8 @@ public class ArrowheadClientBuilder
         Objects.requireNonNull(serviceRegistryAddress);
         Objects.requireNonNull(transport);
 
-        final UriUtil uriUtil = new UriUtil(protocol, serviceRegistryAddress, protocol.getInt(ServiceRegistry.PORT_PROPERTY), ServiceRegistry.SYSTEM_SUFFIX);
-        return withServiceRegistry(protocol, uriUtil.copyBuild(), transport);
+        final UriUtils uriUtils = new UriUtils(protocol, serviceRegistryAddress, protocol.getInt(ServiceRegistry.PORT_PROPERTY), ServiceRegistry.SYSTEM_SUFFIX);
+        return withServiceRegistry(protocol, uriUtils.copyBuild(), transport);
     }
 
     public static ArrowheadClientBuilder withOrchestrator(final ProtocolConfiguration protocol,
@@ -146,8 +150,8 @@ public class ArrowheadClientBuilder
             final ServiceRegistryQuery serviceRegistryQuery = new ServiceRegistryQuery(new ArrowheadService(serviceDefinition, serviceInterface));
 
             final ServiceRegistryEntry entry = serviceRegistry.query(serviceRegistryQuery);
-            final UriUtil uriUtil = new UriUtil(protocol, entry.getProvider().getAddress(), entry.getProvider().getPort(), entry.getServiceURI());
-            final UriBuilder uriBuilder = UriComponentsBuilder.fromUri(uriUtil.copyBuild());
+            final UriUtils uriUtils = new UriUtils(protocol, entry.getProvider().getAddress(), entry.getProvider().getPort(), entry.getServiceURI());
+            final UriBuilder uriBuilder = UriComponentsBuilder.fromUri(uriUtils.copyBuild());
             uriBuilder.replacePath(serviceSuffix);
             return uriBuilder.build();
         }
@@ -168,6 +172,8 @@ public class ArrowheadClientBuilder
     public ArrowheadClient build()
     {
         final ArrowheadClientImpl client = new ArrowheadClientImpl(endpointHolder, transport);
+        orchestrator = getOrchestrator();
+
         client.setDeviceRegistry(new DeviceRegistryImpl(client, getSystemUri(ServiceDefinitions.DEVICE_REGISTRY, DeviceRegistry.SYSTEM_SUFFIX), transport));
         client.setSystemRegistry(new SystemRegistryImpl(client, getSystemUri(ServiceDefinitions.SYSTEM_REGISTRY, SystemRegistry.SYSTEM_SUFFIX), transport));
         client.setServiceRegistry(new ServiceRegistryImpl(client, getSystemUri(ServiceDefinitions.SERVICE_REGISTRY, ServiceRegistry.SYSTEM_SUFFIX), transport));

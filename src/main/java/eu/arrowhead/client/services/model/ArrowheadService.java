@@ -1,6 +1,6 @@
 package eu.arrowhead.client.services.model;
 
-import eu.arrowhead.client.misc.ProtocolConfiguration;
+import eu.arrowhead.client.transport.ProtocolConfiguration;
 import eu.arrowhead.client.misc.ServiceInterfaces;
 
 import java.util.*;
@@ -80,5 +80,17 @@ public class ArrowheadService
     public void setServiceMetadata(final Map<String, String> serviceMetadata)
     {
         this.serviceMetadata = serviceMetadata;
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("ArrowheadService [");
+        sb.append("id=").append(id);
+        sb.append(", serviceDefinition='").append(serviceDefinition).append('\'');
+        sb.append(", interfaces=").append(interfaces);
+        sb.append(", serviceMetadata=").append(serviceMetadata);
+        sb.append(']');
+        return sb.toString();
     }
 }

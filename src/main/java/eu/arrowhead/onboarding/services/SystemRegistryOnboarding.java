@@ -1,7 +1,7 @@
 package eu.arrowhead.onboarding.services;
 
 
-import eu.arrowhead.client.misc.TransportException;
+import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.client.services.request.SystemRegistryEntry;
 
 public interface SystemRegistryOnboarding
@@ -10,4 +10,5 @@ public interface SystemRegistryOnboarding
 
     DeviceRegistryOnboarding removeSystem(final SystemRegistryEntry request) throws TransportException;
 
+    SystemRegistryEntry getSystemRegistryEntry();
 }

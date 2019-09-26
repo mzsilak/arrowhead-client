@@ -1,4 +1,4 @@
-package eu.arrowhead.client.misc;
+package eu.arrowhead.client.transport;
 
 import java.util.function.Supplier;
 

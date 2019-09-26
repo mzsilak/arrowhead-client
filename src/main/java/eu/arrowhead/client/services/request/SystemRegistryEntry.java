@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 public class SystemRegistryEntry
 {
     private Long id;
-    private ArrowheadDevice provider;
     private ArrowheadSystem providedSystem;
+    private ArrowheadDevice provider;
     private String serviceURI;
     private LocalDateTime endOfValidity;
 
@@ -84,5 +84,18 @@ public class SystemRegistryEntry
     public void setEndOfValidity(final LocalDateTime endOfValidity)
     {
         this.endOfValidity = endOfValidity;
+    }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("SystemRegistryEntry [");
+        sb.append("id=").append(id);
+        sb.append(", providedSystem=").append(providedSystem);
+        sb.append(", provider=").append(provider);
+        sb.append(", serviceURI='").append(serviceURI).append('\'');
+        sb.append(", endOfValidity=").append(endOfValidity);
+        sb.append(']');
+        return sb.toString();
     }
 }

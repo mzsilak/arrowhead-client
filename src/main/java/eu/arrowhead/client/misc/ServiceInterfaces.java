@@ -1,5 +1,7 @@
 package eu.arrowhead.client.misc;
 
+import eu.arrowhead.client.transport.ProtocolConfiguration;
+
 public enum ServiceInterfaces
 {
     JSON;

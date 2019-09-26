@@ -1,11 +1,10 @@
 package eu.arrowhead.client.impl;
 
 import eu.arrowhead.client.ArrowheadClient;
-import eu.arrowhead.client.misc.Transport;
-import eu.arrowhead.client.misc.TransportException;
+import eu.arrowhead.client.transport.Transport;
+import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.client.services.ServiceRegistry;
 import eu.arrowhead.client.services.request.*;
-import eu.arrowhead.client.utils.UriUtil;
 
 import java.net.URI;
 
@@ -19,18 +18,18 @@ public class ServiceRegistryImpl extends ServiceClientImpl implements ServiceReg
     @Override
     public ServiceRegistryEntry query(final ServiceRegistryQuery request) throws TransportException
     {
-        return null;
+        return transport.put(ServiceRegistryEntry.class, uriUtils.copyBuild(ServiceRegistry.METHOD_QUERY_SUFFIX), request);
     }
 
     @Override
     public ServiceRegistryEntry registerService(final ServiceRegistryEntry request) throws TransportException
     {
-        return null;
+        return transport.post(ServiceRegistryEntry.class, uriUtils.copyBuild(ServiceRegistry.METHOD_REGISTER_SUFFIX), request);
     }
 
     @Override
     public ServiceRegistryEntry removeService(final ServiceRegistryEntry request) throws TransportException
     {
-        return null;
+        return transport.put(ServiceRegistryEntry.class, uriUtils.copyBuild(ServiceRegistry.METHOD_REMOVE_SUFFIX), request);
     }
 }

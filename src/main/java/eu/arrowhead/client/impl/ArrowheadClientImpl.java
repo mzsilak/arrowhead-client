@@ -2,7 +2,7 @@ package eu.arrowhead.client.impl;
 
 import eu.arrowhead.client.ArrowheadClient;
 import eu.arrowhead.client.misc.SystemEndpointHolder;
-import eu.arrowhead.client.misc.Transport;
+import eu.arrowhead.client.transport.Transport;
 import eu.arrowhead.client.services.*;
 
 public class ArrowheadClientImpl implements ArrowheadClient
