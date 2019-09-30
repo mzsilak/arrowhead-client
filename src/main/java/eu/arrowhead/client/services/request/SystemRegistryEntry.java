@@ -5,13 +5,11 @@ import eu.arrowhead.client.services.model.ArrowheadSystem;
 
 import java.time.LocalDateTime;
 
-public class SystemRegistryEntry
+public class SystemRegistryEntry extends AbstractRegistryEntry
 {
     private Long id;
     private ArrowheadSystem providedSystem;
     private ArrowheadDevice provider;
-    private String serviceURI;
-    private LocalDateTime endOfValidity;
 
     public SystemRegistryEntry()
     {
@@ -93,8 +91,7 @@ public class SystemRegistryEntry
         sb.append("id=").append(id);
         sb.append(", providedSystem=").append(providedSystem);
         sb.append(", provider=").append(provider);
-        sb.append(", serviceURI='").append(serviceURI).append('\'');
-        sb.append(", endOfValidity=").append(endOfValidity);
+        super.appendFields(sb);
         sb.append(']');
         return sb.toString();
     }

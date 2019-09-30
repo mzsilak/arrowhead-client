@@ -39,7 +39,7 @@ public class OnboardingWithSharedKeyRequest
     @Override
     public String toString()
     {
-        final StringBuilder sb = new StringBuilder("OnboardingWithSharedKeyRequest[");
+        final StringBuilder sb = new StringBuilder("OnboardingWithSharedKeyRequest [");
         sb.append("name='").append(name).append('\'');
         sb.append(", sharedKey='").append(sharedKey).append('\'');
         sb.append(']');

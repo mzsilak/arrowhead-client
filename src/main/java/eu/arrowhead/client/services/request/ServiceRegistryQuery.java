@@ -7,7 +7,7 @@ public class ServiceRegistryQuery
     private ArrowheadService service;
     private boolean pingProviders = false;
     private boolean metadataSearch = false;
-    private Integer version = 0;
+    private Integer version = 1;
 
     public ServiceRegistryQuery()
     {

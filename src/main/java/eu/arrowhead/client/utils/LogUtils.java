@@ -2,6 +2,8 @@ package eu.arrowhead.client.utils;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.Message;
+import org.apache.logging.log4j.message.ParameterizedMessage;
 
 import java.util.Objects;
 
@@ -30,6 +32,8 @@ public class LogUtils
         Objects.requireNonNull(level, "Level must not be null");
         Objects.requireNonNull(root, "Throwable must not be null");
 
+        if (!logger.isEnabled(level))
+        { return; }
 
         logger.log(level, INITIAL_PREFIX, Thread.currentThread().getName(), exceptionAndType(root));
         printElements(logger, level, maxElements, root.getStackTrace());
@@ -77,5 +81,18 @@ public class LogUtils
         sb.append(element.getClassName()).append('.').append(element.getMethodName());
         sb.append('(').append(element.getFileName()).append(':').append(element.getLineNumber()).append(')');
         return sb.toString();
+    }
+
+    public static void multiLine(final Logger logger, final Level level, final String msg, final Object... objects)
+    {
+        if (logger.isEnabled(level))
+        {
+            final Message message = new ParameterizedMessage(msg, objects);
+            final String formattedMessage = message.getFormattedMessage();
+            for (String m : formattedMessage.split("\\n"))
+            {
+                logger.log(Level.DEBUG, m);
+            }
+        }
     }
 }

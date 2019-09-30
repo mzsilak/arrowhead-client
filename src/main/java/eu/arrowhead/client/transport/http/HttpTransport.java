@@ -44,7 +44,7 @@ public class HttpTransport implements Transport
 
         restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(jackson);
-        restTemplate.getInterceptors().add(new LoggingInterceptor(logger));
+        restTemplate.getInterceptors().add(new LoggingInterceptor());
     }
 
     @Override

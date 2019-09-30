@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.Properties;
 
 public enum ProtocolConfiguration
@@ -25,12 +26,10 @@ public enum ProtocolConfiguration
         this.secure = secure;
         this.transportFactory = transportFactory;
         properties = new Properties();
-        try
+        try (final InputStream inputStream = getClass().getClassLoader().getResourceAsStream(configFile))
         {
-            try (final InputStream inputStream = getClass().getClassLoader().getResourceAsStream(configFile))
-            {
-                properties.load(inputStream);
-            }
+            if (Objects.nonNull(inputStream))
+            { properties.load(inputStream); }
         }
         catch (IOException e)
         {

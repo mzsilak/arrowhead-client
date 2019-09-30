@@ -2,6 +2,9 @@ package eu.arrowhead.client.services.response;
 
 import eu.arrowhead.client.services.model.ServiceEndpoint;
 
+import java.util.Arrays;
+import java.util.StringJoiner;
+
 public class OnboardingResponse
 {
     private boolean success;
@@ -107,5 +110,21 @@ public class OnboardingResponse
     public void setPublicKey(final String publicKey)
     {
         this.publicKey = publicKey;
+    }
+
+    @Override
+    public String toString()
+    {
+        return new StringJoiner(", ", OnboardingResponse.class.getSimpleName() + "[", "]")
+                .add("success=" + success)
+                .add("services=" + Arrays.toString(services))
+                .add("onboardingCertificate='...'")
+                .add("intermediateCertificate='...'")
+                .add("rootCertificate='...'")
+                .add("keyAlgorithm='" + keyAlgorithm + "'")
+                .add("keyFormat='" + keyFormat + "'")
+                .add("publicKey='" + publicKey + "'")
+                .add("privateKey='...'")
+                .toString();
     }
 }
