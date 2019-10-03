@@ -1,6 +1,7 @@
 package eu.arrowhead.client.impl;
 
 import eu.arrowhead.client.ArrowheadClient;
+import eu.arrowhead.client.services.response.ServiceQueryResult;
 import eu.arrowhead.client.transport.Transport;
 import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.client.services.ServiceRegistry;
@@ -16,9 +17,9 @@ public class ServiceRegistryImpl extends ServiceClientImpl implements ServiceReg
     }
 
     @Override
-    public ServiceRegistryEntry query(final ServiceRegistryQuery request) throws TransportException
+    public ServiceQueryResult query(final ServiceRegistryQuery request) throws TransportException
     {
-        return transport.put(ServiceRegistryEntry.class, uriUtils.copyBuild(ServiceRegistry.METHOD_QUERY_SUFFIX), request);
+        return transport.put(ServiceQueryResult.class, uriUtils.copyBuild(ServiceRegistry.METHOD_QUERY_SUFFIX), request);
     }
 
     @Override

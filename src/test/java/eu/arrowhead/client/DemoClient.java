@@ -36,5 +36,6 @@ public class DemoClient
 
         final ArrowheadClient arrowheadClient = serviceRegistryOnboarding.getClient();
 
+        systemRegistryOnboarding.removeSystem(systemRegistryEntry).removeSystem(deviceRegistryEntry);
     }
 }

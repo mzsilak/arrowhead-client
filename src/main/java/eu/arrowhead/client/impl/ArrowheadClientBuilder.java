@@ -7,8 +7,10 @@ import eu.arrowhead.client.misc.ServiceInterfaces;
 import eu.arrowhead.client.misc.SystemEndpointHolder;
 import eu.arrowhead.client.services.*;
 import eu.arrowhead.client.services.model.ArrowheadService;
+import eu.arrowhead.client.services.model.ArrowheadSystem;
 import eu.arrowhead.client.services.request.ServiceRegistryEntry;
 import eu.arrowhead.client.services.request.ServiceRegistryQuery;
+import eu.arrowhead.client.services.response.ServiceQueryResult;
 import eu.arrowhead.client.transport.ProtocolConfiguration;
 import eu.arrowhead.client.transport.Transport;
 import eu.arrowhead.client.transport.TransportException;
@@ -151,11 +153,21 @@ public class ArrowheadClientBuilder
             final String serviceDefinition = definition.getServiceDefinition(protocol);
             final String serviceInterface = ServiceInterfaces.JSON.forProtocol(protocol);
             final ServiceRegistryQuery serviceRegistryQuery = new ServiceRegistryQuery(new ArrowheadService(serviceDefinition, serviceInterface));
+            serviceRegistryQuery.setPingProviders(true);
 
-            final ServiceRegistryEntry entry = serviceRegistry.query(serviceRegistryQuery);
-            final UriUtils uriUtils = new UriUtils(protocol, entry.getProvider().getAddress(), entry.getProvider().getPort(), entry.getServiceURI());
+            final ServiceQueryResult queryResult = serviceRegistry.query(serviceRegistryQuery);
+            if(queryResult.getServiceQueryData().isEmpty())
+            {
+                throw new RuntimeException("No OrchestrationService found");
+            }
+
+            final ServiceRegistryEntry registryEntry = queryResult.getServiceQueryData().get(0);
+            final ArrowheadSystem provider = registryEntry.getProvider();
+
+            final UriUtils uriUtils = new UriUtils(protocol, provider.getAddress(), provider.getPort(), registryEntry.getServiceURI());
             final UriBuilder uriBuilder = UriComponentsBuilder.fromUri(uriUtils.copyBuild());
             uriBuilder.replacePath(serviceSuffix);
+
             return uriBuilder.build();
         }
         catch (TransportException | UnknownHostException e)

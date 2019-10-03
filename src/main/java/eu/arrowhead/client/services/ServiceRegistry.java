@@ -1,6 +1,7 @@
 package eu.arrowhead.client.services;
 
 
+import eu.arrowhead.client.services.response.ServiceQueryResult;
 import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.client.services.request.ServiceRegistryEntry;
 import eu.arrowhead.client.services.request.ServiceRegistryQuery;
@@ -14,7 +15,7 @@ public interface ServiceRegistry extends ArrowheadClientFacet
     String METHOD_REGISTER_SUFFIX = "register";
     String METHOD_REMOVE_SUFFIX = "remove";
 
-    ServiceRegistryEntry query(final ServiceRegistryQuery request) throws TransportException;
+    ServiceQueryResult query(final ServiceRegistryQuery request) throws TransportException;
 
     ServiceRegistryEntry registerService(final ServiceRegistryEntry request) throws TransportException;
 

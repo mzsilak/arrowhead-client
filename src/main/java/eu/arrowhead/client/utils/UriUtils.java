@@ -15,7 +15,17 @@ public class UriUtils
     public UriUtils(final ProtocolConfiguration protocols, final InetAddress inetAddress, int port, final String... path)
     {
         final String baseUri = String.format("%s://%s:%d", protocols.getScheme(), inetAddress.getHostAddress(), port);
-        baseBuilder = UriComponentsBuilder.fromHttpUrl(baseUri).pathSegment(path);
+        baseBuilder = UriComponentsBuilder.fromHttpUrl(baseUri);
+        safeAddPaths(baseBuilder, path);
+    }
+
+    private void safeAddPaths(final UriComponentsBuilder builder, final String... paths)
+    {
+        for (String path : paths)
+        {
+            final String p = path.replaceAll("%20", "/");
+            builder.pathSegment(p.split("/"));
+        }
     }
 
     public UriUtils(final URI uri)
@@ -30,10 +40,9 @@ public class UriUtils
 
     public URI copyBuild(final String... path)
     {
-        return baseBuilder.cloneBuilder()
-                          .pathSegment(path)
-                          .build(true)
-                          .toUri();
+        final UriComponentsBuilder builder = baseBuilder.cloneBuilder();
+        safeAddPaths(builder, path);
+        return builder.build(true).toUri();
     }
 
     @Override

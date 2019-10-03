@@ -30,7 +30,7 @@ public class RetryHandler
     public <T> T invokeWithErrorHandler(final TransportInvocation<T> method, final VoidTransportInvocation errorMethod) throws TransportException
     {
         Throwable throwable = null;
-        for (int i = 0; i < maxRetries; i++)
+        for (int i = 0; i <= maxRetries; i++)
         {
             try
             {
@@ -38,13 +38,16 @@ public class RetryHandler
             }
             catch (final Exception e)
             {
+                logger.warn("{}: {} - Invoking error method", e.getClass().getSimpleName(), e.getMessage());
                 errorMethod.invoke();
-                logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
                 throwable = e;
             }
 
-            logger.info("Sleeping {} {} before retry ...", delayBetweenRetries, timeUnitForRetries.name());
-            ThreadUtils.sleep(delayBetweenRetries, timeUnitForRetries);
+            if (i < maxRetries)
+            {
+                logger.info("Sleeping {} {} before retry ...", delayBetweenRetries, timeUnitForRetries.name());
+                ThreadUtils.sleep(delayBetweenRetries, timeUnitForRetries);
+            }
         }
 
         LogUtils.printLongStackTrace(logger, Level.ERROR, throwable);
@@ -59,59 +62,13 @@ public class RetryHandler
 
     public <T> T invoke(final TransportInvocation<T> method) throws TransportException
     {
-        Throwable throwable = null;
-        for (int i = 0; i < maxRetries; i++)
-        {
-            try
-            {
-                return method.invoke();
-            }
-            catch (final Exception e)
-            {
-                logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
-                throwable = e;
-            }
-
-            logger.info("Sleeping {} {} before retry ...", delayBetweenRetries, timeUnitForRetries.name());
-            ThreadUtils.sleep(delayBetweenRetries, timeUnitForRetries);
-        }
-
-        LogUtils.printLongStackTrace(logger, Level.ERROR, throwable);
-
-        if (throwable instanceof TransportException)
-        {
-            throw (TransportException) throwable;
-        }
-
-        throw new TransportException(throwable);
+        return invokeWithErrorHandler(method, this::doNothing);
     }
 
-    public void invokeVoid(final VoidTransportInvocation method) throws TransportException
+    private void doNothing()
     {
-        Throwable throwable = null;
-        for (int i = 0; i < maxRetries; i++)
-        {
-            try
-            {
-                method.invoke();
-            }
-            catch (final Exception e)
-            {
-                logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
-                throwable = e;
-            }
-        }
-
-        LogUtils.printLongStackTrace(logger, Level.ERROR, throwable);
-
-        if (throwable instanceof TransportException)
-        {
-            throw (TransportException) throwable;
-        }
-
-        throw new TransportException(throwable);
+        // intentionally empty
     }
-
 
     @Override
     public String toString()
