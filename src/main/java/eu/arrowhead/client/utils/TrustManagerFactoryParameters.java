@@ -12,12 +12,15 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
+import java.util.Objects;
 import java.util.Properties;
 
 import static eu.arrowhead.client.utils.SSLContextConfigurator.*;
 
 public class TrustManagerFactoryParameters extends AbstractFactoryParameters<TrustManagerFactory>
 {
+    private static final String DEFAULT_FILENAME = "truststore";
+
     private final Logger logger = LogManager.getLogger();
 
     public TrustManagerFactoryParameters()
@@ -25,36 +28,33 @@ public class TrustManagerFactoryParameters extends AbstractFactoryParameters<Tru
         super();
     }
 
-    public TrustManagerFactoryParameters(final boolean readSystemProperties)
+    TrustManagerFactoryParameters(final boolean readSystemProperties)
     {
         super(readSystemProperties);
     }
 
-    public TrustManagerFactoryParameters(final String storeProvider, final String storeType, final char[] storePass,
-                                         final String storeFile, final byte[] storeBytes,
+    public TrustManagerFactoryParameters(final String storeProvider,
+                                         final String storeType,
+                                         final char[] storePass,
+                                         final String storeFile,
                                          final String managerFactoryAlgorithm)
     {
-        super(storeProvider, storeType, storePass, storeFile, storeBytes, managerFactoryAlgorithm);
+        super(storeProvider, storeType, storePass, storeFile, managerFactoryAlgorithm);
+    }
+
+    public TrustManagerFactoryParameters(final String storeProvider,
+                                         final String storeType,
+                                         final char[] storePass,
+                                         final byte[] storeBytes,
+                                         final String managerFactoryAlgorithm)
+    {
+        super(storeProvider, storeType, storePass, storeBytes, managerFactoryAlgorithm);
     }
 
     @Override
     void loadProperties(final Properties props)
     {
-        storeProvider = props.getProperty(TRUST_STORE_PROVIDER);
-        storeType = props.getProperty(TRUST_STORE_TYPE);
-
-        if (props.getProperty(TRUST_STORE_PASSWORD) != null)
-        {
-            storePass = props.getProperty(TRUST_STORE_PASSWORD)
-                             .toCharArray();
-        }
-        else
-        {
-            storePass = null;
-        }
-
-        storeFile = props.getProperty(TRUST_STORE_FILE);
-        storeBytes = null;
+        super.loadProperties(props, TRUST_STORE_PROVIDER, TRUST_STORE_TYPE, TRUST_STORE_PASSWORD, TRUST_STORE_FILE);
     }
 
     @Override
@@ -77,6 +77,7 @@ public class TrustManagerFactoryParameters extends AbstractFactoryParameters<Tru
 
             trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
             trustManagerFactory.init(trustStore);
+            return trustManagerFactory;
         }
         catch (KeyStoreException e)
         {
@@ -96,7 +97,7 @@ public class TrustManagerFactoryParameters extends AbstractFactoryParameters<Tru
         }
         catch (FileNotFoundException e)
         {
-            logger.log(Level.WARN, "Can't find trust store file: {}", storeFile, e);
+            logger.log(Level.WARN, "Can't find trust store file: {}", storeFileName, e);
             if (throwException)
             {
                 throw new SSLContextConfigurator.GenericStoreException(e);
@@ -104,7 +105,7 @@ public class TrustManagerFactoryParameters extends AbstractFactoryParameters<Tru
         }
         catch (IOException e)
         {
-            logger.log(Level.WARN, "Error loading trust store from file: {}", storeFile, e);
+            logger.log(Level.WARN, "Error loading trust store from file: {}", storeFileName, e);
             if (throwException)
             {
                 throw new SSLContextConfigurator.GenericStoreException(e);
@@ -127,8 +128,12 @@ public class TrustManagerFactoryParameters extends AbstractFactoryParameters<Tru
             }
         }
 
-
         return null;
     }
 
+    @Override
+    public String getStoreFileName()
+    {
+        return getOrDefault(storeFileName, DEFAULT_FILENAME);
+    }
 }

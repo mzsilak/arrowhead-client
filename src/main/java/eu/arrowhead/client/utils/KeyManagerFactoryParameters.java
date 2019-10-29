@@ -5,17 +5,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.TrustManagerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.Objects;
 import java.util.Properties;
 
 import static eu.arrowhead.client.utils.SSLContextConfigurator.*;
 
 public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyManagerFactory>
 {
+    private static final String DEFAULT_FILENAME = "keystore";
+
     private final Logger logger = LogManager.getLogger();
 
     private char[] keyPass;
@@ -30,32 +32,32 @@ public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyMa
         super(readSystemProperties);
     }
 
-    public KeyManagerFactoryParameters(final String storeProvider, final String storeType, final char[] keyPass,
+    public KeyManagerFactoryParameters(final String storeProvider,
+                                       final String storeType,
+                                       final char[] keyPass,
                                        final char[] storePass,
-                                       final String storeFile, final byte[] storeBytes,
+                                       final byte[] storeBytes,
                                        final String managerFactoryAlgorithm)
     {
-        super(storeProvider, storeType, storePass, storeFile, storeBytes, managerFactoryAlgorithm);
+        super(storeProvider, storeType, storePass, storeBytes, managerFactoryAlgorithm);
+        this.keyPass = keyPass;
+    }
+
+    public KeyManagerFactoryParameters(final String storeProvider,
+                                       final String storeType,
+                                       final char[] keyPass,
+                                       final char[] storePass,
+                                       final String storeFile,
+                                       final String managerFactoryAlgorithm)
+    {
+        super(storeProvider, storeType, storePass, storeFile, managerFactoryAlgorithm);
         this.keyPass = keyPass;
     }
 
     @Override
     void loadProperties(final Properties props)
     {
-        storeProvider = props.getProperty(KEY_STORE_PROVIDER);
-        storeType = props.getProperty(KEY_STORE_TYPE);
-
-        if (props.getProperty(KEY_STORE_PASSWORD) != null)
-        {
-            storePass = props.getProperty(KEY_STORE_PASSWORD).toCharArray();
-        }
-        else
-        {
-            storePass = null;
-        }
-
-        storeFile = props.getProperty(KEY_STORE_FILE);
-        storeBytes = null;
+        super.loadProperties(props, KEY_STORE_PROVIDER, KEY_STORE_TYPE, KEY_STORE_PASSWORD, KEY_STORE_FILE);
     }
 
     @Override
@@ -73,12 +75,12 @@ public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyMa
             {
                 kmfAlgorithm = System.getProperty(
                         KEY_FACTORY_MANAGER_ALGORITHM,
-                        TrustManagerFactory.getDefaultAlgorithm());
+                        KeyManagerFactory.getDefaultAlgorithm());
             }
 
             keyManagerFactory = KeyManagerFactory.getInstance(kmfAlgorithm);
-            char[] pass = getOrDefault(keyPass, storePass);
-            keyManagerFactory.init(keyStore, getOrDefault(keyPass, storePass));
+            keyManagerFactory.init(keyStore, getStorePassword());
+            return keyManagerFactory;
         }
         catch (KeyStoreException e)
         {
@@ -106,7 +108,7 @@ public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyMa
         }
         catch (FileNotFoundException e)
         {
-            logger.log(Level.WARN, "Can't find key store file: {}", storeFile, e);
+            logger.log(Level.WARN, "Can't find key store file: {}", storeFileName, e);
             if (throwException)
             {
                 throw new GenericStoreException(e);
@@ -114,7 +116,7 @@ public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyMa
         }
         catch (IOException e)
         {
-            logger.log(Level.WARN, "Error loading key store from file: {}", storeFile, e);
+            logger.log(Level.WARN, "Error loading key store from file: {}", storeFileName, e);
             if (throwException)
             {
                 throw new GenericStoreException(e);
@@ -131,10 +133,31 @@ public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyMa
         catch (NoSuchProviderException e)
         {
             logger.log(Level.WARN, "Error initializing key store (no such provider)", e);
+            if (throwException)
+            {
+                throw new GenericStoreException(e);
+            }
         }
 
-
         return null;
+    }
+
+    @Override
+    public String getStoreFileName()
+    {
+        return getOrDefault(storeFileName, DEFAULT_FILENAME);
+    }
+
+    @Override
+    public char[] getStorePassword()
+    {
+        return getOrDefault(keyPass, storePassword);
+    }
+
+    @Override
+    public void setStorePassword(final char[] storePassword)
+    {
+        setKeyPass(storePassword);
     }
 
     public char[] getKeyPass()

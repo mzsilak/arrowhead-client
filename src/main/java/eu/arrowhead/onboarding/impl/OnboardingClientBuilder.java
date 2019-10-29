@@ -1,8 +1,8 @@
 package eu.arrowhead.onboarding.impl;
 
-import eu.arrowhead.onboarding.OnboardingClient;
 import eu.arrowhead.client.transport.ProtocolConfiguration;
 import eu.arrowhead.client.utils.SSLContextConfigurator;
+import eu.arrowhead.onboarding.OnboardingClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,6 +13,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import static eu.arrowhead.client.utils.SSLContextConfigurator.DEFAULT_SECURITY_PROTOCOL;
 
 public class OnboardingClientBuilder
 {
@@ -28,10 +30,12 @@ public class OnboardingClientBuilder
     private SSLContextConfigurator configurator;
     private TrustManagerFactory trustManagerFactory;
     private KeyManagerFactory keyManagerFactory;
+    private char[] keyStorePassword;
+    private char[] trustStorePassword;
 
     public OnboardingClientBuilder(final ProtocolConfiguration protocol)
     {
-        logger.debug("Creating new {} with protocol {}", getClass().getSimpleName(), protocol);
+        logger.info("Creating new {} with protocol {}", getClass().getSimpleName(), protocol);
         this.protocol = protocol;
     }
 
@@ -133,6 +137,24 @@ public class OnboardingClientBuilder
         return this;
     }
 
+    public OnboardingClientBuilder withSSLStorePasswords(final String keyStorePassword, final String trustStorePassword)
+    {
+        return withSSLStorePasswords(safeToChar(keyStorePassword), safeToChar(trustStorePassword));
+    }
+
+    public OnboardingClientBuilder withSSLStorePasswords(final char[] keyStorePassword, final char[] trustStorePassword)
+    {
+        this.keyStorePassword = keyStorePassword;
+        this.trustStorePassword = trustStorePassword;
+        return this;
+    }
+
+    private char[] safeToChar(final String string)
+    {
+        if (Objects.nonNull(string)) { return string.toCharArray(); }
+        else { return null; }
+    }
+
     private void createSslContext()
     {
         try
@@ -148,14 +170,15 @@ public class OnboardingClientBuilder
                 {
                     logger.debug("Creating new {} with KeyManagerFactory {}, and TrustManagerFactory {}",
                                  SSLContext.class.getSimpleName(), keyManagerFactory, trustManagerFactory);
-                    sslContext = SSLContext.getInstance("TLS");
+                    sslContext = SSLContext.getInstance(DEFAULT_SECURITY_PROTOCOL);
                     sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null,
-                                    trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null, null);
+                                    trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null,
+                                    null);
                 }
                 else
                 {
                     logger.debug("Creating blank {}", SSLContext.class.getSimpleName());
-                    configurator = new SSLContextConfigurator(true);
+                    configurator = createDefaultSSLContextConfigurator();
                     sslContext = configurator.createSSLContext(true);
                 }
             }
@@ -168,6 +191,12 @@ public class OnboardingClientBuilder
         {
             throw new RuntimeException(e);
         }
+    }
+
+    private SSLContextConfigurator createDefaultSSLContextConfigurator()
+    {
+        SSLContextConfigurator configurator = new SSLContextConfigurator(true);
+        return configurator;
     }
 
     public OnboardingClient build()

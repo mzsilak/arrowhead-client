@@ -17,7 +17,7 @@ public class DemoClient
 {
     public static void main(String[] args) throws Exception
     {
-        final OnboardingClient client = OnboardingClient.withProtocol(ProtocolConfiguration.HTTP)
+        final OnboardingClient client = OnboardingClient.withProtocol(ProtocolConfiguration.HTTPS)
                                                         .withOnboardingAddress("localhost")
                                                         .withRetries(1)
                                                         .build();

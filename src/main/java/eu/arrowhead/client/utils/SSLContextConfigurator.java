@@ -4,15 +4,17 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.*;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.util.Objects;
 import java.util.Properties;
 
 public class SSLContextConfigurator
 {
+    public final static String DEFAULT_SECURITY_PROTOCOL = "TLS";
+
     static final String TRUST_STORE_PROVIDER = "javax.net.ssl.trustStoreProvider";
     static final String KEY_STORE_PROVIDER = "javax.net.ssl.keyStoreProvider";
     static final String TRUST_STORE_FILE = "javax.net.ssl.trustStore";
@@ -29,7 +31,7 @@ public class SSLContextConfigurator
     private final KeyManagerFactoryParameters kmfParameters;
     private final TrustManagerFactoryParameters tmfParameters;
 
-    private String securityProtocol = "TLS";
+    private String securityProtocol = DEFAULT_SECURITY_PROTOCOL;
 
 
     /**
@@ -59,9 +61,17 @@ public class SSLContextConfigurator
     {
         kmfParameters.loadProperties(props);
         tmfParameters.loadProperties(props);
-        securityProtocol = "TLS";
     }
 
+    public KeyManagerFactoryParameters getKeyManagerFactoryParameters()
+    {
+        return kmfParameters;
+    }
+
+    public TrustManagerFactoryParameters getTrustManagerFactoryParameters()
+    {
+        return tmfParameters;
+    }
 
     /**
      * Create a new {@link SSLContext}.  If the {@link SSLContext} cannot be created for whatever reason,
@@ -80,8 +90,8 @@ public class SSLContextConfigurator
 
         try
         {
-            TrustManagerFactory trustManagerFactory = null;
-            KeyManagerFactory keyManagerFactory = null;
+            TrustManagerFactory trustManagerFactory = tmfParameters.initFactory(throwException);
+            KeyManagerFactory keyManagerFactory = kmfParameters.initFactory(throwException);
 
             if (kmfParameters.hasFileOrBytes())
             {
@@ -93,11 +103,7 @@ public class SSLContextConfigurator
                 trustManagerFactory = tmfParameters.initFactory(throwException);
             }
 
-            String secProtocol = "TLS";
-            if (securityProtocol != null)
-            {
-                secProtocol = securityProtocol;
-            }
+            final String secProtocol = Objects.nonNull(securityProtocol) ? securityProtocol : DEFAULT_SECURITY_PROTOCOL;
             sslContext = SSLContext.getInstance(secProtocol);
             sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null,
                             trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null, null);
@@ -120,6 +126,34 @@ public class SSLContextConfigurator
         }
 
         return sslContext;
+    }
+
+    public SSLContext createTrustAllSSLContext() throws NoSuchAlgorithmException, KeyManagementException
+    {
+        final String secProtocol = Objects.nonNull(securityProtocol) ? securityProtocol : DEFAULT_SECURITY_PROTOCOL;
+        final SSLContext sslContext = SSLContext.getInstance(secProtocol);
+
+        TrustManager[] trustAllCerts = new TrustManager[]{new TrustAllX509TrustManager()};
+        sslContext.init(null, trustAllCerts, null);
+        return sslContext;
+    }
+
+    private static class TrustAllX509TrustManager implements TrustManager
+    {
+        public X509Certificate[] getAcceptedIssuers()
+        {
+            return new X509Certificate[0];
+        }
+
+        public void checkClientTrusted(X509Certificate[] certs, String authType)
+        {
+            // void;
+        }
+
+        public void checkServerTrusted(X509Certificate[] certs, String authType)
+        {
+            // void;
+        }
     }
 
     /**
@@ -179,7 +213,7 @@ public class SSLContextConfigurator
      */
     public void setTrustStorePass(char[] trustStorePass)
     {
-        tmfParameters.setStorePass(trustStorePass);
+        tmfParameters.setStorePassword(trustStorePass);
     }
 
     /**
@@ -199,7 +233,7 @@ public class SSLContextConfigurator
      */
     public void setKeyStorePass(char[] keyStorePass)
     {
-        kmfParameters.setStorePass(keyStorePass);
+        kmfParameters.setStorePassword(keyStorePass);
     }
 
     /**
@@ -232,7 +266,7 @@ public class SSLContextConfigurator
      */
     public void setTrustStoreFile(String trustStoreFile)
     {
-        tmfParameters.setStoreFile(trustStoreFile);
+        tmfParameters.setStoreFileName(trustStoreFile);
     }
 
     /**
@@ -257,7 +291,7 @@ public class SSLContextConfigurator
      */
     public void setKeyStoreFile(String keyStoreFile)
     {
-        kmfParameters.setStoreFile(keyStoreFile);
+        kmfParameters.setStoreFileName(keyStoreFile);
     }
 
     /**
