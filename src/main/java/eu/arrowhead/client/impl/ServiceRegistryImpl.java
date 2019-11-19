@@ -6,14 +6,15 @@ import eu.arrowhead.client.transport.Transport;
 import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.client.services.ServiceRegistry;
 import eu.arrowhead.client.services.request.*;
+import eu.arrowhead.onboarding.impl.SSLContextBuilder;
 
 import java.net.URI;
 
 public class ServiceRegistryImpl extends ServiceClientImpl implements ServiceRegistry
 {
-    public ServiceRegistryImpl(final ArrowheadClient client, final URI uri, final Transport transport)
+    public ServiceRegistryImpl(final ArrowheadClient client, final URI uri, final Transport transport, final SSLContextBuilder sslContextBuilder)
     {
-        super(client, uri, transport);
+        super(client, uri, transport, sslContextBuilder);
     }
 
     @Override

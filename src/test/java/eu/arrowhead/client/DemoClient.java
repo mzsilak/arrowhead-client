@@ -20,6 +20,8 @@ public class DemoClient
         final OnboardingClient client = OnboardingClient.withProtocol(ProtocolConfiguration.HTTPS)
                                                         .withOnboardingAddress("localhost")
                                                         .withRetries(1)
+                                                        .withKeyStorePasswords("123456", "keypass")
+                                                        .withInsecureSSLContext()
                                                         .build();
 
 
@@ -27,7 +29,7 @@ public class DemoClient
                 new OnboardingWithSharedKeyRequest("client", "password"));
 
         final DeviceRegistryEntry deviceRegistryEntry = new DeviceRegistryEntry("00:00:00:00:00:00", LocalDateTime.now().plusDays(3), "device");
-        final SystemRegistryOnboarding systemRegistryOnboarding = deviceRegistryOnboarding.registerSystem(deviceRegistryEntry);
+        final SystemRegistryOnboarding systemRegistryOnboarding = deviceRegistryOnboarding.registerDevice(deviceRegistryEntry);
 
         final SystemRegistryEntry systemRegistryEntry = new SystemRegistryEntry(deviceRegistryEntry.getProvidedDevice(),
                                                                                 new ArrowheadSystem("system", IpUtils.getIpAddress(), 22), null,
@@ -35,7 +37,6 @@ public class DemoClient
         final ServiceRegistryOnboarding serviceRegistryOnboarding = systemRegistryOnboarding.registerSystem(systemRegistryEntry);
 
         final ArrowheadClient arrowheadClient = serviceRegistryOnboarding.getClient();
-
-        systemRegistryOnboarding.removeSystem(systemRegistryEntry).removeSystem(deviceRegistryEntry);
+        systemRegistryOnboarding.removeSystem(systemRegistryEntry).removeDevice(deviceRegistryEntry);
     }
 }

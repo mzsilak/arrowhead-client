@@ -8,14 +8,15 @@ import eu.arrowhead.client.services.request.OnboardingRequest;
 import eu.arrowhead.client.services.request.OnboardingWithCertificateRequest;
 import eu.arrowhead.client.services.request.OnboardingWithSharedKeyRequest;
 import eu.arrowhead.client.services.response.OnboardingResponse;
+import eu.arrowhead.onboarding.impl.SSLContextBuilder;
 
 import java.net.URI;
 
 public class OnboardingControllerImpl extends ServiceClientImpl implements OnboardingController
 {
-    public OnboardingControllerImpl(final ArrowheadClient arrowheadClient, final URI systemUri, final Transport transport)
+    public OnboardingControllerImpl(final ArrowheadClient arrowheadClient, final URI systemUri, final Transport transport, final SSLContextBuilder sslContextBuilder)
     {
-        super(arrowheadClient, systemUri, transport);
+        super(arrowheadClient, systemUri, transport, sslContextBuilder);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package eu.arrowhead.client.utils;
+package eu.arrowhead.client.utils.security;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -86,27 +86,20 @@ public class SSLContextConfigurator
      */
     public SSLContext createSSLContext(final boolean throwException)
     {
+        final KeyManagerFactory keyManagerFactory = createKeyManagerFactory();
+        final TrustManagerFactory trustManagerFactory = createTrustManagerFactory();
+        return createSSLContext(throwException, keyManagerFactory, trustManagerFactory);
+    }
+
+    public SSLContext createSSLContext(final boolean throwException, final KeyManager[] keyManagers, final TrustManager[] trustManagers)
+    {
         SSLContext sslContext = null;
 
         try
         {
-            TrustManagerFactory trustManagerFactory = tmfParameters.initFactory(throwException);
-            KeyManagerFactory keyManagerFactory = kmfParameters.initFactory(throwException);
-
-            if (kmfParameters.hasFileOrBytes())
-            {
-                keyManagerFactory = kmfParameters.initFactory(throwException);
-            }
-
-            if (tmfParameters.hasFileOrBytes())
-            {
-                trustManagerFactory = tmfParameters.initFactory(throwException);
-            }
-
             final String secProtocol = Objects.nonNull(securityProtocol) ? securityProtocol : DEFAULT_SECURITY_PROTOCOL;
             sslContext = SSLContext.getInstance(secProtocol);
-            sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null,
-                            trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null, null);
+            sslContext.init(keyManagers, trustManagers, null);
         }
         catch (KeyManagementException e)
         {
@@ -124,21 +117,54 @@ public class SSLContextConfigurator
                 throw new GenericStoreException(e);
             }
         }
-
         return sslContext;
     }
 
-    public SSLContext createTrustAllSSLContext() throws NoSuchAlgorithmException, KeyManagementException
+    public SSLContext createSSLContext(final boolean throwException, final KeyManagerFactory keyManagerFactory, final TrustManagerFactory trustManagerFactory)
     {
-        final String secProtocol = Objects.nonNull(securityProtocol) ? securityProtocol : DEFAULT_SECURITY_PROTOCOL;
-        final SSLContext sslContext = SSLContext.getInstance(secProtocol);
+        final KeyManagerFactory kmf = keyManagerFactory != null ? keyManagerFactory : createKeyManagerFactory();
+        final TrustManagerFactory tmf = trustManagerFactory != null ? trustManagerFactory : createTrustManagerFactory();
 
-        TrustManager[] trustAllCerts = new TrustManager[]{new TrustAllX509TrustManager()};
-        sslContext.init(null, trustAllCerts, null);
-        return sslContext;
+        return createSSLContext(throwException,
+                                keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null,
+                                trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null);
     }
 
-    private static class TrustAllX509TrustManager implements TrustManager
+    public SSLContext createTrustAllSSLContext(final boolean throwException)
+    {
+        final KeyManagerFactory keyManagerFactory = createKeyManagerFactory();
+        final KeyManager[] keyManagers = Objects.nonNull(keyManagerFactory) ? keyManagerFactory.getKeyManagers() : null;
+        final TrustManager[] trustAllCerts = new TrustManager[]{new TrustAllX509TrustManager()};
+        return createSSLContext(throwException, keyManagers, trustAllCerts);
+    }
+
+    public KeyManagerFactory createKeyManagerFactory()
+    {
+        return kmfParameters.initFactory(true);
+    }
+
+    public TrustManagerFactory createTrustManagerFactory()
+    {
+        return tmfParameters.initFactory(true);
+    }
+
+    public static class NoopHostnameVerifier implements HostnameVerifier
+    {
+        /**
+         * Singleton instance.
+         */
+        public static final HostnameVerifier INSTANCE = new NoopHostnameVerifier();
+
+        private NoopHostnameVerifier() { /* NOOP */ }
+
+        @Override
+        public boolean verify(final String s, final SSLSession sslSession)
+        {
+            return true;
+        }
+    }
+
+    public static class TrustAllX509TrustManager implements X509TrustManager
     {
         public X509Certificate[] getAcceptedIssuers()
         {
@@ -201,9 +227,9 @@ public class SSLContextConfigurator
      *
      * @param trustStorePass Password of <em>trust</em> store to set.
      */
-    public void setTrustStorePass(String trustStorePass)
+    public void setTrustStorePassword(String trustStorePass)
     {
-        setTrustStorePass(trustStorePass.toCharArray());
+        setTrustStorePassword(trustStorePass.toCharArray());
     }
 
     /**
@@ -211,7 +237,7 @@ public class SSLContextConfigurator
      *
      * @param trustStorePass Password of <em>trust</em> store to set.
      */
-    public void setTrustStorePass(char[] trustStorePass)
+    public void setTrustStorePassword(char[] trustStorePass)
     {
         tmfParameters.setStorePassword(trustStorePass);
     }
@@ -221,9 +247,9 @@ public class SSLContextConfigurator
      *
      * @param keyStorePass Password of <em>key</em> store to set.
      */
-    public void setKeyStorePass(String keyStorePass)
+    public void setKeyStorePassword(String keyStorePass)
     {
-        setKeyStorePass(keyStorePass.toCharArray());
+        setKeyStorePassword(keyStorePass.toCharArray());
     }
 
     /**
@@ -231,7 +257,7 @@ public class SSLContextConfigurator
      *
      * @param keyStorePass Password of <em>key</em> store to set.
      */
-    public void setKeyStorePass(char[] keyStorePass)
+    public void setKeyStorePassword(char[] keyStorePass)
     {
         kmfParameters.setStorePassword(keyStorePass);
     }
@@ -241,9 +267,9 @@ public class SSLContextConfigurator
      *
      * @param keyPass Password of <em>key</em> to set.
      */
-    public void setKeyPass(String keyPass)
+    public void setKeyPassword(String keyPass)
     {
-        setKeyPass(keyPass.toCharArray());
+        setKeyPassword(keyPass.toCharArray());
     }
 
     /**
@@ -251,9 +277,9 @@ public class SSLContextConfigurator
      *
      * @param keyPass Password of <em>key</em> to set.
      */
-    public void setKeyPass(char[] keyPass)
+    public void setKeyPassword(char[] keyPass)
     {
-        kmfParameters.setKeyPass(keyPass);
+        kmfParameters.setKeyPassword(keyPass);
     }
 
     /**

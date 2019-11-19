@@ -1,6 +1,7 @@
 package eu.arrowhead.onboarding;
 
 import eu.arrowhead.client.transport.ProtocolConfiguration;
+import eu.arrowhead.client.transport.SSLConfigurationException;
 import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.onboarding.services.DeviceRegistryOnboarding;
 import eu.arrowhead.client.services.request.OnboardingRequest;
@@ -15,10 +16,10 @@ public interface OnboardingClient
         return new OnboardingClientBuilder(protocol);
     }
 
-    DeviceRegistryOnboarding plain(final OnboardingRequest request) throws TransportException;
+    DeviceRegistryOnboarding plain(final OnboardingRequest request) throws TransportException, SSLConfigurationException;
 
-    DeviceRegistryOnboarding withSharedKey(final OnboardingWithSharedKeyRequest request) throws TransportException;
+    DeviceRegistryOnboarding withSharedKey(final OnboardingWithSharedKeyRequest request) throws TransportException, SSLConfigurationException;
 
-    DeviceRegistryOnboarding withCertificate(final OnboardingWithCertificateRequest request) throws TransportException;
+    DeviceRegistryOnboarding withCertificate(final OnboardingWithCertificateRequest request) throws TransportException, SSLConfigurationException;
 
 }

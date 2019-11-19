@@ -16,13 +16,13 @@ import eu.arrowhead.client.transport.Transport;
 import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.client.utils.LogUtils;
 import eu.arrowhead.client.utils.UriUtils;
+import eu.arrowhead.onboarding.impl.SSLContextBuilder;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.util.UriBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.net.ssl.SSLContext;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
@@ -30,21 +30,20 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.Objects;
 
-public class ArrowheadClientBuilder
+public class ArrowheadClientBuilder extends SSLContextBuilder<ArrowheadClientBuilder>
 {
     private final Logger logger = LogManager.getLogger();
 
-    private final ProtocolConfiguration protocol;
     private final Transport transport;
+    private SSLContextBuilder sslContextBuilder;
     private SystemEndpointHolder endpointHolder;
-    private SSLContext sslContext;
     private ServiceRegistry serviceRegistry;
     private Orchestrator orchestrator;
 
     private ArrowheadClientBuilder(final ProtocolConfiguration protocol, final Transport transport)
     {
+        super(protocol);
         this.transport = transport;
-        this.protocol = protocol;
         this.endpointHolder = new SystemEndpointHolder(protocol);
     }
 
@@ -111,6 +110,12 @@ public class ArrowheadClientBuilder
         return builder;
     }
 
+    public ArrowheadClientBuilder withSSLContextBuilder(final SSLContextBuilder sslContextBuilder)
+    {
+        super.copyFrom(sslContextBuilder);
+        return this;
+    }
+
     public ArrowheadClientBuilder withSystemEndpoints(final SystemEndpointHolder endpointHolder)
     {
         endpointHolder.addAll(this.endpointHolder);
@@ -136,14 +141,14 @@ public class ArrowheadClientBuilder
                     throw new IllegalStateException("Either Orchestrator or ServiceRegistry URI must be set at this point");
                 }
 
-                serviceRegistry = new ServiceRegistryImpl(null, serviceRegistryUri, transport);
+                serviceRegistry = new ServiceRegistryImpl(null, serviceRegistryUri, transport, this);
             }
 
             // query service registry for orchestration service
             orchestratorUri = getSystemUri(ServiceDefinitions.ORCHESTRATION, Orchestrator.SYSTEM_SUFFIX);
         }
 
-        return new OrchestratorImpl(null, orchestratorUri, transport);
+        return new OrchestratorImpl(null, orchestratorUri, transport, this);
     }
 
     private URI getSystemUri(final ServiceDefinitions definition, final String serviceSuffix)
@@ -156,7 +161,7 @@ public class ArrowheadClientBuilder
             serviceRegistryQuery.setPingProviders(true);
 
             final ServiceQueryResult queryResult = serviceRegistry.query(serviceRegistryQuery);
-            if(queryResult.getServiceQueryData().isEmpty())
+            if (queryResult.getServiceQueryData().isEmpty())
             {
                 throw new RuntimeException("No OrchestrationService found");
             }
@@ -186,17 +191,33 @@ public class ArrowheadClientBuilder
 
     public ArrowheadClient build()
     {
+        buildSslContext();
+
         final ArrowheadClientImpl client = new ArrowheadClientImpl(endpointHolder, transport);
         orchestrator = getOrchestrator();
 
-        client.setDeviceRegistry(new DeviceRegistryImpl(client, getSystemUri(ServiceDefinitions.DEVICE_REGISTRY, DeviceRegistry.SYSTEM_SUFFIX), transport));
-        client.setSystemRegistry(new SystemRegistryImpl(client, getSystemUri(ServiceDefinitions.SYSTEM_REGISTRY, SystemRegistry.SYSTEM_SUFFIX), transport));
-        client.setServiceRegistry(new ServiceRegistryImpl(client, getSystemUri(ServiceDefinitions.SERVICE_REGISTRY, ServiceRegistry.SYSTEM_SUFFIX), transport));
-        client.setOnboardingController(
-                new OnboardingControllerImpl(client, getSystemUri(ServiceDefinitions.ONBOARDING, OnboardingController.SYSTEM_SUFFIX), transport));
-        client.setOrchestrator(new OrchestratorImpl(client, getSystemUri(ServiceDefinitions.ORCHESTRATION, Orchestrator.SYSTEM_SUFFIX), transport));
-        client.setEventHandler(new EventHandlerImpl(client, getSystemUri(ServiceDefinitions.EVENT_SUBSCRIPTION, EventHandler.SYSTEM_SUFFIX), transport));
+        client.setDeviceRegistry(createImpl(DeviceRegistryImpl.class, client, ServiceDefinitions.DEVICE_REGISTRY, DeviceRegistry.SYSTEM_SUFFIX));
+        client.setSystemRegistry(createImpl(SystemRegistryImpl.class, client, ServiceDefinitions.SYSTEM_REGISTRY, SystemRegistry.SYSTEM_SUFFIX));
+        client.setServiceRegistry(createImpl(ServiceRegistryImpl.class, client, ServiceDefinitions.SERVICE_REGISTRY, ServiceRegistry.SYSTEM_SUFFIX));
+        client.setOnboardingController(createImpl(OnboardingControllerImpl.class, client, ServiceDefinitions.ONBOARDING, OnboardingController.SYSTEM_SUFFIX));
+        client.setOrchestrator(createImpl(OrchestratorImpl.class, client, ServiceDefinitions.ORCHESTRATION, Orchestrator.SYSTEM_SUFFIX));
+        client.setEventHandler(createImpl(EventHandlerImpl.class, client, ServiceDefinitions.EVENT_SUBSCRIPTION, EventHandler.SYSTEM_SUFFIX));
 
         return client;
+    }
+
+    private <T> T createImpl(final Class<T> cls, final ArrowheadClient client, final ServiceDefinitions definition, final String suffix)
+    {
+        try
+        {
+            final URI uri = getSystemUri(definition, suffix);
+            final Constructor<T> constructor = cls.getDeclaredConstructor(ArrowheadClient.class, URI.class, Transport.class, SSLContextBuilder.class);
+            return constructor.newInstance(client, uri, transport, this);
+        }
+        catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e)
+        {
+            logger.fatal("Unable to create new instance", e);
+            throw new RuntimeException(e);
+        }
     }
 }

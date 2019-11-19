@@ -1,4 +1,4 @@
-package eu.arrowhead.client.utils;
+package eu.arrowhead.client.utils.security;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -12,10 +12,9 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
-import java.util.Objects;
 import java.util.Properties;
 
-import static eu.arrowhead.client.utils.SSLContextConfigurator.*;
+import static eu.arrowhead.client.utils.security.SSLContextConfigurator.*;
 
 public class TrustManagerFactoryParameters extends AbstractFactoryParameters<TrustManagerFactory>
 {
@@ -135,5 +134,11 @@ public class TrustManagerFactoryParameters extends AbstractFactoryParameters<Tru
     public String getStoreFileName()
     {
         return getOrDefault(storeFileName, DEFAULT_FILENAME);
+    }
+
+    @Override
+    protected String getStoreFactoryType()
+    {
+        return DEFAULT_FILENAME;
     }
 }

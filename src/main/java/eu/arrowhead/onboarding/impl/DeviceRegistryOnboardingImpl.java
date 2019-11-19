@@ -23,32 +23,38 @@ public class DeviceRegistryOnboardingImpl implements DeviceRegistryOnboarding
     private final RetryHandler retryHandler;
     private final Transport transport;
     private final UriUtils uriUtils;
+    private final SSLContextBuilder sslContextBuilder;
 
     private DeviceRegistryEntry deviceRegistryEntry;
 
-    public DeviceRegistryOnboardingImpl(final OnboardingClientImpl onboardingClient, final SystemEndpointHolder endpointHolder, final Transport transport,
-                                        final RetryHandler retryHandler)
+    public DeviceRegistryOnboardingImpl(final OnboardingClientImpl onboardingClient,
+                                        final SystemEndpointHolder endpointHolder,
+                                        final Transport transport,
+                                        final RetryHandler retryHandler,
+                                        final SSLContextBuilder sslContextBuilder)
     {
         this.uriUtils = new UriUtils(endpointHolder.get(CoreSystems.DEVICE_REGISTRY));
         this.onboardingClient = onboardingClient;
         this.endpointHolder = endpointHolder;
         this.transport = transport;
         this.retryHandler = retryHandler;
-        this.deviceRegistry = new DeviceRegistryImpl(null, uriUtils.copyBuild(), transport);
+        this.sslContextBuilder = sslContextBuilder;
+        this.deviceRegistry = new DeviceRegistryImpl(null, uriUtils.copyBuild(), transport, sslContextBuilder);
         logger.debug("Created {}", this);
     }
 
+
     @Override
-    public SystemRegistryOnboarding registerSystem(final DeviceRegistryEntry request) throws TransportException
+    public SystemRegistryOnboarding registerDevice(final DeviceRegistryEntry request) throws TransportException
     {
-        deviceRegistryEntry = retryHandler.invokeWithErrorHandler(() -> deviceRegistry.registerSystem(request), () -> removeSystem(request));
+        deviceRegistryEntry = retryHandler.invokeWithErrorHandler(() -> deviceRegistry.registerSystem(request), () -> removeDevice(request));
         request.setId(deviceRegistryEntry.getId());
         request.getProvidedDevice().setId(deviceRegistryEntry.getProvidedDevice().getId());
-        return new SystemRegistryOnboardingImpl(this, endpointHolder, transport, retryHandler);
+        return new SystemRegistryOnboardingImpl(this, endpointHolder, transport, retryHandler, sslContextBuilder);
     }
 
     @Override
-    public OnboardingClient removeSystem(final DeviceRegistryEntry request) throws TransportException
+    public OnboardingClient removeDevice(final DeviceRegistryEntry request) throws TransportException
     {
         deviceRegistryEntry = deviceRegistry.removeSystem(request);
         request.setId(null);

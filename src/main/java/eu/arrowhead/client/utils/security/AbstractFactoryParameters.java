@@ -1,4 +1,4 @@
-package eu.arrowhead.client.utils;
+package eu.arrowhead.client.utils.security;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +25,7 @@ abstract class AbstractFactoryParameters<T>
     protected byte[] storeBytes;
     protected String managerFactoryAlgorithm;
 
+    private KeyStore store;
 
     AbstractFactoryParameters()
     {
@@ -38,6 +39,10 @@ abstract class AbstractFactoryParameters<T>
         {
             loadProperties(System.getProperties());
         }
+
+        this.storeType = getOrDefault(storeType, KeyStore.getDefaultType());
+        final String provider = getOrDefault(storeProvider, "default");
+        logger.debug("Creating instance {} of type {} with provider {}", getClass().getSimpleName(), storeType, provider);
     }
 
     AbstractFactoryParameters(final String storeProvider,
@@ -47,10 +52,12 @@ abstract class AbstractFactoryParameters<T>
                               final String managerFactoryAlgorithm)
     {
         this.storeProvider = storeProvider;
-        this.storeType = storeType;
+        this.storeType = getOrDefault(storeType, KeyStore.getDefaultType());
         this.storePassword = storePassword;
         this.storeFileName = storeFileName;
         this.managerFactoryAlgorithm = managerFactoryAlgorithm;
+        final String provider = getOrDefault(storeProvider, "default");
+        logger.debug("Creating instance {} of type {} with provider {}", getClass().getSimpleName(), storeType, provider);
     }
 
 
@@ -61,31 +68,49 @@ abstract class AbstractFactoryParameters<T>
                               final String managerFactoryAlgorithm)
     {
         this.storeProvider = storeProvider;
-        this.storeType = storeType;
+        this.storeType = getOrDefault(storeType, KeyStore.getDefaultType());
         this.storePassword = storePassword;
         this.storeBytes = storeBytes;
         this.managerFactoryAlgorithm = managerFactoryAlgorithm;
+        final String provider = getOrDefault(storeProvider, "default");
+        logger.debug("Creating instance {} of type {} with provider {}", getClass().getSimpleName(), storeType, provider);
     }
 
-
-    KeyStore loadStore()
-            throws NoSuchProviderException, KeyStoreException, CertificateException, NoSuchAlgorithmException,
-                   IOException
+    protected KeyStore initEmptyStore() throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, NoSuchProviderException
     {
-        final String type = getOrDefault(storeType, KeyStore.getDefaultType());
-        KeyStore store = null;
+        final KeyStore store;
 
         if (Objects.nonNull(storeProvider))
         {
-            logger.debug("Creating instance of type {} with provider {}", type, storeProvider);
-            store = KeyStore.getInstance(type, storeProvider);
+            store = KeyStore.getInstance(storeType, storeProvider);
         }
         else
         {
-            logger.debug("Creating instance of type {} with default provider", type);
-            store = KeyStore.getInstance(type);
+            store = KeyStore.getInstance(storeType);
         }
+
+        logger.trace("Initializing empty Store ...");
+        store.load(null, null);
+        return store;
+    }
+
+    public KeyStore getStore() throws NoSuchAlgorithmException, CertificateException, NoSuchProviderException, KeyStoreException, IOException
+    {
+        if (Objects.isNull(store))
+        {
+            loadStore();
+        }
+        return store;
+    }
+
+    public KeyStore loadStore()
+            throws NoSuchProviderException, KeyStoreException, CertificateException, NoSuchAlgorithmException,
+                   IOException
+    {
+        logger.trace("Loading Store for {}", getClass().getSimpleName());
+        final KeyStore store = initEmptyStore();
         loadBytes(storeBytes, getStoreFileName(), getStorePassword(), store);
+        this.store = store;
         return store;
     }
 
@@ -113,11 +138,14 @@ abstract class AbstractFactoryParameters<T>
             }
             else
             {
-                logger.debug("Neither file nor bytes provided. Creating empty store.");
-                saveStore(store, password, storeFileName);
+                logger.debug("Neither file nor bytes provided. Creating empty store  (name={})", getStoreFileName());
+                saveStore(store);
+                logger.trace("Loading store again from file");
+                inputStream = new FileInputStream(getStoreFileName());
             }
 
-            store.load(inputStream, password);
+            store.load(inputStream, getStorePassword());
+            this.store = store;
         }
         finally
         {
@@ -134,15 +162,12 @@ abstract class AbstractFactoryParameters<T>
         }
     }
 
-    private void saveStore(final KeyStore store, final char[] password, final String filename) throws IOException
+    public void saveStore(final KeyStore store) throws IOException
     {
-        final char[] pwd = Objects.nonNull(password) ? password : filename.toCharArray();
-        try (final FileOutputStream fileOutputStream = new FileOutputStream(filename))
+        try (final FileOutputStream fileOutputStream = new FileOutputStream(getStoreFileName()))
         {
-            store.load(null, pwd);
-            store.store(fileOutputStream, pwd);
-            setStoreFileName(filename);
-            setStorePassword(pwd);
+            store.store(fileOutputStream, getStorePassword());
+            this.store = store;
         }
         catch (final IOException e)
         {
@@ -177,12 +202,8 @@ abstract class AbstractFactoryParameters<T>
         {
             setStorePassword(properties.getProperty(propertyNamePassword).toCharArray());
         }
-        else
-        {
-            setStorePassword(null);
-        }
 
-        setStoreFileName(properties.getProperty(propertyNameFile));
+        storeFileName = properties.getProperty(propertyNameFile);
         if (Objects.nonNull(storeFileName))
         { storeBytes = null; }
     }
@@ -211,24 +232,28 @@ abstract class AbstractFactoryParameters<T>
 
     public char[] getStorePassword()
     {
-        return storePassword;
+        final char[] pwd = getOrDefault(storePassword, getStoreFileName().toCharArray());
+        logger.trace("Returning store password for '{}' (length:{})", getStoreFactoryType(), pwd.length);
+        return pwd;
     }
 
     public void setStorePassword(final char[] storePassword)
     {
+        Objects.requireNonNull(storePassword, "StorePassword must not be null");
+        logger.trace("Setting store password for '{}' to (length:{})", getStoreFactoryType(), storePassword.length);
         this.storePassword = storePassword;
     }
 
-    public String getStoreFileName()
-    {
-        return storeFileName;
-    }
+    public abstract String getStoreFileName();
 
     public void setStoreFileName(final String storeFileName)
     {
+        logger.trace("Setting filename for '{}' to '{}'", getStoreFactoryType(), storeFileName);
         this.storeFileName = storeFileName;
         this.storeBytes = null;
     }
+
+    protected abstract String getStoreFactoryType();
 
     public byte[] getStoreBytes()
     {

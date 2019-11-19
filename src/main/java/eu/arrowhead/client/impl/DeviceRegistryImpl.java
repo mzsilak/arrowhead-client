@@ -5,14 +5,16 @@ import eu.arrowhead.client.transport.Transport;
 import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.client.services.DeviceRegistry;
 import eu.arrowhead.client.services.request.DeviceRegistryEntry;
+import eu.arrowhead.onboarding.impl.SSLContextBuilder;
 
 import java.net.URI;
 
 public class DeviceRegistryImpl extends ServiceClientImpl implements DeviceRegistry
 {
-    public DeviceRegistryImpl(final ArrowheadClient arrowheadClient, final URI systemUri, final Transport transport)
+    public DeviceRegistryImpl(final ArrowheadClient arrowheadClient, final URI systemUri, final Transport transport,
+                              final SSLContextBuilder sslContextBuilder)
     {
-        super(arrowheadClient, systemUri, transport);
+        super(arrowheadClient, systemUri, transport, sslContextBuilder);
     }
 
     @Override

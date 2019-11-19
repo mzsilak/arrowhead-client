@@ -15,6 +15,7 @@
     </Appenders>
     <Loggers>
         <Logger name="eu.arrowhead" level="debug" additivity="true"/>
+        <Logger name="eu.arrowhead.client.utils.security" level="debug" additivity="true"/>
         <Logger name="org" level="info" additivity="true"/>
         <Logger name="com" level="info" additivity="true"/>
 

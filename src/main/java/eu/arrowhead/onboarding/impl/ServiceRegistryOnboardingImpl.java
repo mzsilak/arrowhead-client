@@ -15,11 +15,14 @@ import eu.arrowhead.onboarding.services.SystemRegistryOnboarding;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.net.ssl.SSLContext;
+
 public class ServiceRegistryOnboardingImpl implements ServiceRegistryOnboarding
 {
     private final Logger logger = LogManager.getLogger();
     private final SystemRegistryOnboarding systemRegistry;
     private final ServiceRegistry serviceRegistry;
+    private final SSLContextBuilder sslContextBuilder;
     private final RetryHandler retryHandler;
     private final SystemEndpointHolder endpointHolder;
     private final Transport transport;
@@ -27,15 +30,19 @@ public class ServiceRegistryOnboardingImpl implements ServiceRegistryOnboarding
 
     private ServiceRegistryEntry serviceRegistryEntry;
 
-    public ServiceRegistryOnboardingImpl(final SystemRegistryOnboarding systemRegistry, final SystemEndpointHolder endpointHolder, final Transport transport,
-                                         final RetryHandler retryHandler)
+    public ServiceRegistryOnboardingImpl(final SystemRegistryOnboarding systemRegistry,
+                                         final SystemEndpointHolder endpointHolder,
+                                         final Transport transport,
+                                         final RetryHandler retryHandler,
+                                         final SSLContextBuilder sslContextBuilder)
     {
         this.uriUtils = new UriUtils(endpointHolder.get(CoreSystems.SERVICE_REGISTRY));
         this.systemRegistry = systemRegistry;
         this.endpointHolder = endpointHolder;
         this.transport = transport;
         this.retryHandler = retryHandler;
-        this.serviceRegistry = new ServiceRegistryImpl(null, uriUtils.copyBuild(), transport);
+        this.sslContextBuilder = sslContextBuilder;
+        this.serviceRegistry = new ServiceRegistryImpl(null, uriUtils.copyBuild(), transport, sslContextBuilder);
         logger.debug("Created {}", this);
     }
 
@@ -69,6 +76,7 @@ public class ServiceRegistryOnboardingImpl implements ServiceRegistryOnboarding
     {
         return ArrowheadClientBuilder.withServiceRegistry(endpointHolder.getProtocolConfiguration(), serviceRegistry, transport)
                                      .withSystemEndpoints(endpointHolder)
+                                     .withSSLContextBuilder(sslContextBuilder)
                                      .build();
     }
 

@@ -7,9 +7,9 @@ import eu.arrowhead.client.services.request.DeviceRegistryEntry;
 
 public interface DeviceRegistryOnboarding
 {
-    SystemRegistryOnboarding registerSystem(final DeviceRegistryEntry entry) throws TransportException;
+    SystemRegistryOnboarding registerDevice(final DeviceRegistryEntry entry) throws TransportException;
 
-    OnboardingClient removeSystem(final DeviceRegistryEntry entry) throws TransportException;
+    OnboardingClient removeDevice(final DeviceRegistryEntry entry) throws TransportException;
 
     DeviceRegistryEntry getDeviceRegistryEntry();
 }

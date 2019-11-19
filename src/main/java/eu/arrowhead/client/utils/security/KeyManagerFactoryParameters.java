@@ -1,4 +1,4 @@
-package eu.arrowhead.client.utils;
+package eu.arrowhead.client.utils.security;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -12,15 +12,16 @@ import java.security.cert.CertificateException;
 import java.util.Objects;
 import java.util.Properties;
 
-import static eu.arrowhead.client.utils.SSLContextConfigurator.*;
+import static eu.arrowhead.client.utils.security.SSLContextConfigurator.*;
 
 public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyManagerFactory>
 {
     private static final String DEFAULT_FILENAME = "keystore";
+    private static final char[] DEFAULT_KEYPASS = "123456".toCharArray();
 
     private final Logger logger = LogManager.getLogger();
 
-    private char[] keyPass;
+    private char[] keyPassword;
 
     public KeyManagerFactoryParameters()
     {
@@ -34,24 +35,24 @@ public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyMa
 
     public KeyManagerFactoryParameters(final String storeProvider,
                                        final String storeType,
-                                       final char[] keyPass,
+                                       final char[] keyPassword,
                                        final char[] storePass,
                                        final byte[] storeBytes,
                                        final String managerFactoryAlgorithm)
     {
         super(storeProvider, storeType, storePass, storeBytes, managerFactoryAlgorithm);
-        this.keyPass = keyPass;
+        this.keyPassword = keyPassword;
     }
 
     public KeyManagerFactoryParameters(final String storeProvider,
                                        final String storeType,
-                                       final char[] keyPass,
+                                       final char[] keyPassword,
                                        final char[] storePass,
                                        final String storeFile,
                                        final String managerFactoryAlgorithm)
     {
         super(storeProvider, storeType, storePass, storeFile, managerFactoryAlgorithm);
-        this.keyPass = keyPass;
+        this.keyPassword = keyPassword;
     }
 
     @Override
@@ -64,11 +65,19 @@ public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyMa
     KeyManagerFactory initFactory(final boolean throwException)
     {
         final KeyManagerFactory keyManagerFactory;
-        final KeyStore keyStore;
+        KeyStore keyStore;
 
         try
         {
-            keyStore = loadStore();
+            try
+            {
+                keyStore = loadStore();
+            }
+            catch (NoSuchProviderException | KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e)
+            {
+                logger.error("Error during loading ... attempting to create new store", e);
+                keyStore = initEmptyStore();
+            }
 
             String kmfAlgorithm = managerFactoryAlgorithm;
             if (kmfAlgorithm == null)
@@ -79,7 +88,7 @@ public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyMa
             }
 
             keyManagerFactory = KeyManagerFactory.getInstance(kmfAlgorithm);
-            keyManagerFactory.init(keyStore, getStorePassword());
+            keyManagerFactory.init(keyStore, getKeyPassword());
             return keyManagerFactory;
         }
         catch (KeyStoreException e)
@@ -148,25 +157,23 @@ public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyMa
         return getOrDefault(storeFileName, DEFAULT_FILENAME);
     }
 
-    @Override
-    public char[] getStorePassword()
+    public char[] getKeyPassword()
     {
-        return getOrDefault(keyPass, storePassword);
+        final char[] pwd = getOrDefault(keyPassword, DEFAULT_KEYPASS);
+        logger.trace("Returning key password (length:{})", pwd.length);
+        return pwd;
+    }
+
+    public void setKeyPassword(final char[] keyPassword)
+    {
+        Objects.requireNonNull(keyPassword, "KeyPassword must not be null");
+        logger.trace("Setting key password to (length:{})", keyPassword.length);
+        this.keyPassword = keyPassword;
     }
 
     @Override
-    public void setStorePassword(final char[] storePassword)
+    protected String getStoreFactoryType()
     {
-        setKeyPass(storePassword);
-    }
-
-    public char[] getKeyPass()
-    {
-        return keyPass;
-    }
-
-    public void setKeyPass(final char[] keyPass)
-    {
-        this.keyPass = keyPass;
+        return DEFAULT_FILENAME;
     }
 }

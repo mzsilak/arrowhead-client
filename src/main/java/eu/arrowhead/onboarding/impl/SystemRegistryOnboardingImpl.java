@@ -20,6 +20,7 @@ public class SystemRegistryOnboardingImpl implements SystemRegistryOnboarding
     private final DeviceRegistryOnboarding deviceRegistry;
     private final SystemEndpointHolder endpointHolder;
     private final SystemRegistry systemRegistry;
+    private final SSLContextBuilder sslContextBuilder;
     private final RetryHandler retryHandler;
     private final Transport transport;
     private final UriUtils uriUtils;
@@ -27,14 +28,16 @@ public class SystemRegistryOnboardingImpl implements SystemRegistryOnboarding
     private SystemRegistryEntry systemRegistryEntry;
 
     public SystemRegistryOnboardingImpl(final DeviceRegistryOnboarding deviceRegistry, final SystemEndpointHolder endpointHolder, final Transport transport,
-                                        final RetryHandler retryHandler)
+                                        final RetryHandler retryHandler,
+                                        final SSLContextBuilder sslContextBuilder)
     {
         this.uriUtils = new UriUtils(endpointHolder.get(CoreSystems.SYSTEM_REGISTRY));
         this.deviceRegistry = deviceRegistry;
         this.endpointHolder = endpointHolder;
         this.transport = transport;
         this.retryHandler = retryHandler;
-        this.systemRegistry = new SystemRegistryImpl(null, uriUtils.copyBuild(), transport);
+        this.sslContextBuilder = sslContextBuilder;
+        this.systemRegistry = new SystemRegistryImpl(null, uriUtils.copyBuild(), transport, sslContextBuilder);
         logger.debug("Created {}", this);
     }
 
@@ -45,7 +48,7 @@ public class SystemRegistryOnboardingImpl implements SystemRegistryOnboarding
         request.setId(systemRegistryEntry.getId());
         request.getProvidedSystem().setId(systemRegistryEntry.getProvidedSystem().getId());
         request.getProvider().setId(systemRegistryEntry.getProvider().getId());
-        return new ServiceRegistryOnboardingImpl(this, endpointHolder, transport, retryHandler);
+        return new ServiceRegistryOnboardingImpl(this, endpointHolder, transport, retryHandler, sslContextBuilder);
     }
 
     @Override
