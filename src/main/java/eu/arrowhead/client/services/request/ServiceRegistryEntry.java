@@ -17,14 +17,14 @@ public class ServiceRegistryEntry extends AbstractRegistryEntry
         super();
     }
 
-    public ServiceRegistryEntry(final ArrowheadService providedService, final ArrowheadSystem provider, final String serviceURI)
+    public ServiceRegistryEntry(final ArrowheadSystem provider, final ArrowheadService providedService, final String serviceURI)
     {
         this.providedService = providedService;
         this.provider = provider;
         this.serviceURI = serviceURI;
     }
 
-    public ServiceRegistryEntry(final Long id, final ArrowheadService providedService, final ArrowheadSystem provider, final String serviceURI,
+    public ServiceRegistryEntry(final Long id, final ArrowheadSystem provider, final ArrowheadService providedService, final String serviceURI,
                                 final Boolean udp,
                                 final LocalDateTime endOfValidity)
     {
