@@ -17,6 +17,8 @@ import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.client.utils.LogUtils;
 import eu.arrowhead.client.utils.UriUtils;
 import eu.arrowhead.onboarding.impl.SSLContextBuilder;
+import eu.arrowhead.onboarding.services.ServiceRegistryOnboarding;
+import eu.arrowhead.onboarding.services.SystemRegistryOnboarding;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,10 +37,11 @@ public class ArrowheadClientBuilder extends SSLContextBuilder<ArrowheadClientBui
     private final Logger logger = LogManager.getLogger();
 
     private final Transport transport;
-    private SSLContextBuilder sslContextBuilder;
     private SystemEndpointHolder endpointHolder;
     private ServiceRegistry serviceRegistry;
     private Orchestrator orchestrator;
+    private ServiceRegistryOnboarding serviceRegistryOnboarding;
+    private SystemRegistryOnboarding systemRegistryOnboarding;
 
     private ArrowheadClientBuilder(final ProtocolConfiguration protocol, final Transport transport)
     {
@@ -132,7 +135,7 @@ public class ArrowheadClientBuilder extends SSLContextBuilder<ArrowheadClientBui
         }
         else
         {
-            if (Objects.isNull(serviceRegistry))
+            if (Objects.isNull(serviceRegistryOnboarding))
             {
                 final URI serviceRegistryUri = endpointHolder.get(CoreSystems.SERVICE_REGISTRY);
 
@@ -203,6 +206,9 @@ public class ArrowheadClientBuilder extends SSLContextBuilder<ArrowheadClientBui
         client.setOrchestrator(createImpl(OrchestratorImpl.class, client, ServiceDefinitions.ORCHESTRATION, Orchestrator.SYSTEM_SUFFIX));
         client.setEventHandler(createImpl(EventHandlerImpl.class, client, ServiceDefinitions.EVENT_SUBSCRIPTION, EventHandler.SYSTEM_SUFFIX));
 
+        client.setServiceRegistryOnboarding(serviceRegistryOnboarding);
+        client.setSystemRegistryOnboarding(systemRegistryOnboarding);
+
         return client;
     }
 
@@ -219,5 +225,13 @@ public class ArrowheadClientBuilder extends SSLContextBuilder<ArrowheadClientBui
             logger.fatal("Unable to create new instance", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public ArrowheadClientBuilder withOnboardingRegistries(final ServiceRegistryOnboarding serviceRegistryOnboarding,
+                                                           final SystemRegistryOnboarding systemRegistryOnboarding)
+    {
+        this.serviceRegistryOnboarding = serviceRegistryOnboarding;
+        this.systemRegistryOnboarding = systemRegistryOnboarding;
+        return this;
     }
 }

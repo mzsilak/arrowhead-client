@@ -1,6 +1,8 @@
 package eu.arrowhead.client;
 
 import eu.arrowhead.client.services.*;
+import eu.arrowhead.onboarding.services.ServiceRegistryOnboarding;
+import eu.arrowhead.onboarding.services.SystemRegistryOnboarding;
 
 public interface ArrowheadClient
 {
@@ -16,4 +18,7 @@ public interface ArrowheadClient
 
     EventHandler eventHandler();
 
+    ServiceRegistryOnboarding serviceOffboarding();
+
+    SystemRegistryOnboarding systemOffboarding();
 }

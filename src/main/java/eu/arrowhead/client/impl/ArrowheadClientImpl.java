@@ -4,6 +4,10 @@ import eu.arrowhead.client.ArrowheadClient;
 import eu.arrowhead.client.misc.SystemEndpointHolder;
 import eu.arrowhead.client.transport.Transport;
 import eu.arrowhead.client.services.*;
+import eu.arrowhead.onboarding.impl.SSLContextBuilder;
+import eu.arrowhead.onboarding.impl.ServiceRegistryOnboardingImpl;
+import eu.arrowhead.onboarding.services.ServiceRegistryOnboarding;
+import eu.arrowhead.onboarding.services.SystemRegistryOnboarding;
 
 public class ArrowheadClientImpl implements ArrowheadClient
 {
@@ -17,6 +21,9 @@ public class ArrowheadClientImpl implements ArrowheadClient
     private EventHandler eventHandler;
     private OnboardingController onboardingController;
 
+    private ServiceRegistryOnboarding serviceRegistryOnboarding;
+    private SystemRegistryOnboarding systemRegistryOnboarding;
+
     public ArrowheadClientImpl(final SystemEndpointHolder endpointHolder, final Transport transport)
     {
         super();
@@ -27,37 +34,49 @@ public class ArrowheadClientImpl implements ArrowheadClient
     @Override
     public OnboardingController onboardingController()
     {
-        return null;
+        return onboardingController;
     }
 
     @Override
     public DeviceRegistry deviceRegistry()
     {
-        return null;
+        return deviceRegistry;
     }
 
     @Override
     public SystemRegistry systemRegistry()
     {
-        return null;
+        return systemRegistry;
     }
 
     @Override
     public ServiceRegistry serviceRegistry()
     {
-        return null;
+        return serviceRegistry;
     }
 
     @Override
     public Orchestrator orchestrator()
     {
-        return null;
+        return orchestrator;
     }
 
     @Override
     public EventHandler eventHandler()
     {
-        return null;
+        return eventHandler;
+    }
+
+    @Override
+    public ServiceRegistryOnboarding serviceOffboarding()
+    {
+        return serviceRegistryOnboarding;
+    }
+
+    @Override
+    public SystemRegistryOnboarding systemOffboarding()
+    {
+        return systemRegistryOnboarding;
     }
 
     public SystemEndpointHolder getEndpointHolder()
@@ -128,5 +147,25 @@ public class ArrowheadClientImpl implements ArrowheadClient
     public void setOnboardingController(final OnboardingController onboardingController)
     {
         this.onboardingController = onboardingController;
+    }
+
+    public ServiceRegistryOnboarding getServiceRegistryOnboarding()
+    {
+        return serviceRegistryOnboarding;
+    }
+
+    public void setServiceRegistryOnboarding(final ServiceRegistryOnboarding serviceRegistryOnboarding)
+    {
+        this.serviceRegistryOnboarding = serviceRegistryOnboarding;
+    }
+
+    public SystemRegistryOnboarding getSystemRegistryOnboarding()
+    {
+        return systemRegistryOnboarding;
+    }
+
+    public void setSystemRegistryOnboarding(final SystemRegistryOnboarding systemRegistryOnboarding)
+    {
+        this.systemRegistryOnboarding = systemRegistryOnboarding;
     }
 }

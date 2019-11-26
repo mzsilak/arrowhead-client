@@ -77,6 +77,7 @@ public class ServiceRegistryOnboardingImpl implements ServiceRegistryOnboarding
         return ArrowheadClientBuilder.withServiceRegistry(endpointHolder.getProtocolConfiguration(), serviceRegistry, transport)
                                      .withSystemEndpoints(endpointHolder)
                                      .withSSLContextBuilder(sslContextBuilder)
+                                     .withOnboardingRegistries(this, systemRegistry)
                                      .build();
     }
 
