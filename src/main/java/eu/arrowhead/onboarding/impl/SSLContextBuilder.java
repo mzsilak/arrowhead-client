@@ -1,6 +1,7 @@
 package eu.arrowhead.onboarding.impl;
 
 import eu.arrowhead.client.transport.ProtocolConfiguration;
+import eu.arrowhead.client.transport.SecureTransport;
 import eu.arrowhead.client.utils.security.KeyManagerFactoryParameters;
 import eu.arrowhead.client.utils.security.SSLContextConfigurator;
 import eu.arrowhead.client.utils.security.TrustManagerFactoryParameters;
@@ -8,7 +9,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.util.Base64Utils;
 
-import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -25,12 +25,10 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Objects;
 
-public class SSLContextBuilder<T>
+public abstract class SSLContextBuilder<T>
 {
-    private final Logger logger = LogManager.getLogger(SSLContextBuilder.class);
-
     protected final ProtocolConfiguration protocol;
-
+    private final Logger logger = LogManager.getLogger(SSLContextBuilder.class);
     protected SSLContext sslContext;
     protected SSLContextConfigurator configurator;
     protected TrustManagerFactory trustManagerFactory;
@@ -160,6 +158,11 @@ public class SSLContextBuilder<T>
 
     protected void buildSslContext()
     {
+        if (!protocol.isSecure())
+        {
+            return;
+        }
+
         try
         {
             if (Objects.isNull(sslContext))
@@ -170,8 +173,8 @@ public class SSLContextBuilder<T>
                 sslContext = configurator.createSSLContext(true, keyManagerFactory, trustManagerFactory);
             }
 
-            SSLContext.setDefault(sslContext);
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+            final SecureTransport transport = (SecureTransport) protocol.getTransport();
+            transport.setSSLContext(sslContext);
         }
         catch (Throwable e)
         {
@@ -255,13 +258,18 @@ public class SSLContextBuilder<T>
 
     protected void reloadSSLContext()
     {
+        if (!protocol.isSecure())
+        {
+            return;
+        }
+
         logger.info("Reloading SSLContext");
 
         keyManagerFactory = configurator.createKeyManagerFactory();
         trustManagerFactory = configurator.createTrustManagerFactory();
         sslContext = configurator.createSSLContext(true, keyManagerFactory, trustManagerFactory);
 
-        SSLContext.setDefault(sslContext);
-        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+        final SecureTransport transport = (SecureTransport) protocol.getTransport();
+        transport.setSSLContext(sslContext);
     }
 }

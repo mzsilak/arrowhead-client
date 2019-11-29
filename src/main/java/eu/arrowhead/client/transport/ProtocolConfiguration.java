@@ -11,20 +11,25 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.Properties;
 
-public enum ProtocolConfiguration
+public class ProtocolConfiguration
 {
-    HTTP("http.properties", false, HttpTransport::new),
-    HTTPS("https.properties", true, HttpTransport::new);
+    public static final ProtocolConfiguration HTTP =
+            new ProtocolConfiguration("http.properties", "http", false, new HttpTransport());
+
+    public static final ProtocolConfiguration HTTPS =
+            new ProtocolConfiguration("https.properties", "https", true, new HttpTransport());
 
     private final Logger logger = LogManager.getLogger();
-    private final TransportFactory transportFactory;
+    private final Transport transport;
     private final Properties properties;
+    private final String scheme;
     private final boolean secure;
 
-    ProtocolConfiguration(final String configFile, final boolean secure, final TransportFactory transportFactory)
+    private ProtocolConfiguration(final String configFile, final String scheme, final boolean secure, final Transport transport)
     {
+        this.scheme = scheme;
         this.secure = secure;
-        this.transportFactory = transportFactory;
+        this.transport = transport;
         properties = new Properties();
         try (final InputStream inputStream = getClass().getClassLoader().getResourceAsStream(configFile))
         {
@@ -55,11 +60,11 @@ public enum ProtocolConfiguration
 
     public Transport getTransport()
     {
-        return transportFactory.get();
+        return transport;
     }
 
     public String getScheme()
     {
-        return name().toLowerCase();
+        return scheme;
     }
 }

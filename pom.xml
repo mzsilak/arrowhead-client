@@ -83,6 +83,12 @@
             </exclusions>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+
         <!-- Next 3 dependency needed for Java 11 compatibility -->
         <dependency>
             <groupId>com.sun.xml.bind</groupId>

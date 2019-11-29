@@ -1,12 +1,12 @@
 package eu.arrowhead.onboarding.impl;
 
 import eu.arrowhead.client.transport.ProtocolConfiguration;
+import eu.arrowhead.client.transport.SecureTransport;
 import eu.arrowhead.client.utils.security.SSLContextConfigurator;
 import eu.arrowhead.onboarding.OnboardingClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -86,20 +86,24 @@ public class OnboardingClientBuilder extends SSLContextBuilder<OnboardingClientB
     {
         try
         {
+            if (!protocol.isSecure())
+            {
+                return this;
+            }
+
             if (Objects.isNull(sslContext))
             {
                 prepareSslContext();
                 logger.warn("Using builtin accept-all, trust-all SSLContext for Onboarding");
                 super.sslContext = configurator.createTrustAllSSLContext(true);
-
             }
             else
             {
                 logger.debug("Using given {}: {}", SSLContext.class.getSimpleName(), sslContext);
             }
 
-            HttpsURLConnection.setDefaultHostnameVerifier(SSLContextConfigurator.NoopHostnameVerifier.INSTANCE);
-            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
+            final SecureTransport transport = (SecureTransport) protocol.getTransport();
+            transport.setSSLContext(sslContext, SSLContextConfigurator.NoopHostnameVerifier.INSTANCE);
         }
         catch (Throwable e)
         {

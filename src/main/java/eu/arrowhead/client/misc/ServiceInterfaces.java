@@ -8,11 +8,11 @@ public enum ServiceInterfaces
 
     public String forProtocol(final ProtocolConfiguration protocolConfiguration)
     {
-        switch (protocolConfiguration)
+        switch (protocolConfiguration.getScheme())
         {
-            case HTTP:
+            case "http":
                 return "HTTP-INSECURE-" + name();
-            case HTTPS:
+            case "https":
                 return "HTTP-SECURE-" + name();
             default:
                 return null;

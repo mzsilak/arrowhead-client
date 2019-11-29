@@ -8,23 +8,29 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import eu.arrowhead.client.transport.SecureTransport;
 import eu.arrowhead.client.transport.Transport;
 import eu.arrowhead.client.transport.TransportException;
+import eu.arrowhead.client.utils.security.SSLContextConfigurator;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import java.net.URI;
 
-public class HttpTransport implements Transport
+public class HttpTransport implements SecureTransport, Transport
 {
     private final Logger logger = LogManager.getLogger();
     private final RestTemplate restTemplate;
-
 
     public HttpTransport()
     {
@@ -45,6 +51,28 @@ public class HttpTransport implements Transport
         restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(jackson);
         restTemplate.getInterceptors().add(new LoggingInterceptor());
+    }
+
+    @Override
+    public void setSSLContext(final SSLContext sslContext)
+    {
+        final CloseableHttpClient httpClient = HttpClients.custom()
+                                                          .setSSLContext(sslContext)
+                                                          .setSSLHostnameVerifier(SSLContextConfigurator.NoopHostnameVerifier.INSTANCE)
+                                                          .build();
+
+        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
+    }
+
+    @Override
+    public void setSSLContext(final SSLContext sslContext, final HostnameVerifier verifier)
+    {
+        final CloseableHttpClient httpClient = HttpClients.custom()
+                                                          .setSSLContext(sslContext)
+                                                          .setSSLHostnameVerifier(verifier)
+                                                          .build();
+
+        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
     }
 
     @Override
