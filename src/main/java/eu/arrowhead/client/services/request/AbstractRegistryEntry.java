@@ -32,7 +32,7 @@ public abstract class AbstractRegistryEntry
 
     protected void appendFields(final StringBuilder sb)
     {
-        sb.append("serviceURI='").append(serviceURI).append('\'');
+        sb.append(", serviceURI='").append(serviceURI).append('\'');
         sb.append(", endOfValidity=").append(endOfValidity);
     }
 }

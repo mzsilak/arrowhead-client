@@ -89,6 +89,7 @@ public class KeyManagerFactoryParameters extends AbstractFactoryParameters<KeyMa
 
             keyManagerFactory = KeyManagerFactory.getInstance(kmfAlgorithm);
             keyManagerFactory.init(keyStore, getKeyPassword());
+
             return keyManagerFactory;
         }
         catch (KeyStoreException e)

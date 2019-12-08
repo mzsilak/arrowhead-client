@@ -33,6 +33,8 @@ public class SSLContextConfigurator
 
     private String securityProtocol = DEFAULT_SECURITY_PROTOCOL;
 
+    private KeyManagerFactory keyManagerFactory;
+    private TrustManagerFactory trustManagerFactory;
 
     /**
      * Default constructor. Reads configuration properties from

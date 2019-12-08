@@ -12,6 +12,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
+import java.util.Objects;
 import java.util.Properties;
 
 import static eu.arrowhead.client.utils.security.SSLContextConfigurator.*;
@@ -76,6 +77,7 @@ public class TrustManagerFactoryParameters extends AbstractFactoryParameters<Tru
 
             trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
             trustManagerFactory.init(trustStore);
+
             return trustManagerFactory;
         }
         catch (KeyStoreException e)

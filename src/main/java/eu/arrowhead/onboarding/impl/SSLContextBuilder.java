@@ -81,12 +81,6 @@ public abstract class SSLContextBuilder<T>
         return keyManagerFactory;
     }
 
-    public T withSSLContext(final SSLContext context)
-    {
-        this.sslContext = context;
-        return (T) this;
-    }
-
     public T withSSLConfiguration(final SSLContextConfigurator configurator)
     {
         sslContext = null;

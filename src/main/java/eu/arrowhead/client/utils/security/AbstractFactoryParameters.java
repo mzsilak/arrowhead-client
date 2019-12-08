@@ -136,13 +136,13 @@ abstract class AbstractFactoryParameters<T>
                 logger.debug("Loading store through file (name={})", storeFileName);
                 inputStream = new FileInputStream(storeFileName);
             }
-            else
+           /* else
             {
                 logger.debug("Neither file nor bytes provided. Creating empty store  (name={})", getStoreFileName());
                 saveStore(store);
                 logger.trace("Loading store again from file");
                 inputStream = new FileInputStream(getStoreFileName());
-            }
+            }*/
 
             store.load(inputStream, getStorePassword());
             this.store = store;

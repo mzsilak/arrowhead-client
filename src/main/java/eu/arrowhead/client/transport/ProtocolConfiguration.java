@@ -67,4 +67,14 @@ public class ProtocolConfiguration
     {
         return scheme;
     }
+
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder("[");
+        sb.append("scheme='").append(scheme).append('\'');
+        sb.append(", secure=").append(secure);
+        sb.append(']');
+        return sb.toString();
+    }
 }

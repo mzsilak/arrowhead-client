@@ -21,7 +21,7 @@ public class OnboardingClientBuilder extends SSLContextBuilder<OnboardingClientB
     private int retries = 3;
     private long delayBetweenRetries = 5;
     private TimeUnit timeUnitForRetries = TimeUnit.SECONDS;
-
+    private SSLContext insecureSslContext;
 
     public OnboardingClientBuilder(final ProtocolConfiguration protocol)
     {
@@ -91,19 +91,19 @@ public class OnboardingClientBuilder extends SSLContextBuilder<OnboardingClientB
                 return this;
             }
 
-            if (Objects.isNull(sslContext))
+            if (Objects.isNull(insecureSslContext))
             {
                 prepareSslContext();
                 logger.warn("Using builtin accept-all, trust-all SSLContext for Onboarding");
-                super.sslContext = configurator.createTrustAllSSLContext(true);
+                insecureSslContext = configurator.createTrustAllSSLContext(true);
             }
             else
             {
-                logger.debug("Using given {}: {}", SSLContext.class.getSimpleName(), sslContext);
+                logger.debug("Using given {}: {}", SSLContext.class.getSimpleName(), insecureSslContext);
             }
 
             final SecureTransport transport = (SecureTransport) protocol.getTransport();
-            transport.setSSLContext(sslContext, SSLContextConfigurator.NoopHostnameVerifier.INSTANCE);
+            transport.setSSLContext(insecureSslContext, SSLContextConfigurator.NoopHostnameVerifier.INSTANCE);
         }
         catch (Throwable e)
         {
@@ -115,6 +115,8 @@ public class OnboardingClientBuilder extends SSLContextBuilder<OnboardingClientB
 
     public OnboardingClient build()
     {
+        if (Objects.isNull(insecureSslContext))
+        { buildSslContext(); }
         return new OnboardingClientImpl(protocol, getAddress(), this);
     }
 
