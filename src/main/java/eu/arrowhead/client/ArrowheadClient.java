@@ -1,8 +1,10 @@
 package eu.arrowhead.client;
 
 import eu.arrowhead.client.services.*;
+import eu.arrowhead.client.transport.Transport;
 import eu.arrowhead.onboarding.services.ServiceRegistryOnboarding;
 import eu.arrowhead.onboarding.services.SystemRegistryOnboarding;
+import org.springframework.web.client.RestTemplate;
 
 public interface ArrowheadClient
 {
@@ -21,4 +23,6 @@ public interface ArrowheadClient
     ServiceRegistryOnboarding serviceOffboarding();
 
     SystemRegistryOnboarding systemOffboarding();
+
+    Transport getTransport();
 }

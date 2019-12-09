@@ -84,6 +84,7 @@ public class ArrowheadClientImpl implements ArrowheadClient
         return endpointHolder;
     }
 
+    @Override
     public Transport getTransport()
     {
         return transport;
