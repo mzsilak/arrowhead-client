@@ -31,7 +31,7 @@ public class DeviceRegistryOnboardingImpl implements DeviceRegistryOnboarding
                                         final SystemEndpointHolder endpointHolder,
                                         final Transport transport,
                                         final RetryHandler retryHandler,
-                                        final SSLContextBuilder sslContextBuilder)
+                                        final SSLContextBuilder<?> sslContextBuilder)
     {
         this.uriUtils = new UriUtils(endpointHolder.get(CoreSystems.DEVICE_REGISTRY));
         this.onboardingClient = onboardingClient;

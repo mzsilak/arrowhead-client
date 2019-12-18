@@ -12,9 +12,9 @@ public class RetryHandler
 {
     private final Logger logger = LogManager.getLogger();
 
-    private int maxRetries = 1;
-    private long delayBetweenRetries = 1;
-    private TimeUnit timeUnitForRetries = TimeUnit.SECONDS;
+    private int maxRetries = 5;
+    private long delayBetweenRetries = 200;
+    private TimeUnit timeUnitForRetries = TimeUnit.MILLISECONDS;
 
     public void setMaxRetries(final int maxRetries)
     {
@@ -25,6 +25,18 @@ public class RetryHandler
     {
         this.delayBetweenRetries = delayBetweenRetries;
         this.timeUnitForRetries = timeUnitForRetries;
+    }
+
+    private TransportException rethrowException(final Throwable throwable)
+    {
+        LogUtils.printShortStackTrace(logger, Level.ERROR, throwable);
+
+        if (throwable instanceof TransportException)
+        {
+            return (TransportException) throwable;
+        }
+
+        return new TransportException(throwable);
     }
 
     public <T> T invokeWithErrorHandler(final TransportInvocation<T> method, final VoidTransportInvocation errorMethod) throws TransportException
@@ -49,15 +61,7 @@ public class RetryHandler
                 ThreadUtils.sleep(delayBetweenRetries, timeUnitForRetries);
             }
         }
-
-        LogUtils.printLongStackTrace(logger, Level.ERROR, throwable);
-
-        if (throwable instanceof TransportException)
-        {
-            throw (TransportException) throwable;
-        }
-
-        throw new TransportException(throwable);
+        throw rethrowException(throwable);
     }
 
     public void invokeVoid(final VoidTransportInvocation method) throws TransportException
@@ -82,15 +86,7 @@ public class RetryHandler
                 ThreadUtils.sleep(delayBetweenRetries, timeUnitForRetries);
             }
         }
-
-        LogUtils.printLongStackTrace(logger, Level.ERROR, throwable);
-
-        if (throwable instanceof TransportException)
-        {
-            throw (TransportException) throwable;
-        }
-
-        throw new TransportException(throwable);
+        throw rethrowException(throwable);
     }
 
     public <T> T invoke(final TransportInvocation<T> method) throws TransportException

@@ -60,8 +60,6 @@ public class HttpTransport implements SecureTransport, Transport
         restTemplate.setRequestFactory(createRequestFactory(createHttpClient()));
 
         retryHandler = new RetryHandler();
-        retryHandler.setDelayBetweenRetries(1, TimeUnit.SECONDS);
-        retryHandler.setMaxRetries(1);
     }
 
     @Override
