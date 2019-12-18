@@ -36,7 +36,7 @@ public class OnboardingClientImpl implements OnboardingClient
 {
     private final Logger logger = LogManager.getLogger();
 
-    private final SSLContextBuilder sslContextBuilder;
+    private final SSLContextBuilder<?> sslContextBuilder;
     private final ProtocolConfiguration protocol;
     private final Transport transport;
     private final RetryHandler retryHandler;
@@ -54,6 +54,7 @@ public class OnboardingClientImpl implements OnboardingClient
         this.retryHandler = new RetryHandler();
         this.retryHandler.setMaxRetries(builder.getRetries());
         this.retryHandler.setDelayBetweenRetries(builder.getDelayBetweenRetries(), builder.getTimeUnitForRetries());
+        transport.setRetryHandler(retryHandler);
 
         this.endpointHolder = new SystemEndpointHolder(protocol);
         this.endpointHolder.add(CoreSystems.ONBOARDING_CONTROLLER, uriUtils.copyBuild());
@@ -73,21 +74,21 @@ public class OnboardingClientImpl implements OnboardingClient
     @Override
     public DeviceRegistryOnboarding plain(final OnboardingRequest request) throws TransportException, SSLConfigurationException
     {
-        final OnboardingResponse response = retryHandler.invoke(() -> onboardingController.plain(request));
+        final OnboardingResponse response = onboardingController.plain(request);
         return processResponse(request.getName(), response);
     }
 
     @Override
     public DeviceRegistryOnboarding withSharedKey(final OnboardingWithSharedKeyRequest request) throws TransportException, SSLConfigurationException
     {
-        final OnboardingResponse response = retryHandler.invoke(() -> onboardingController.withSharedKey(request));
+        final OnboardingResponse response = onboardingController.withSharedKey(request);
         return processResponse(request.getName(), response);
     }
 
     @Override
     public DeviceRegistryOnboarding withCertificate(final OnboardingWithCertificateRequest request) throws TransportException, SSLConfigurationException
     {
-        final OnboardingResponse response = retryHandler.invoke(() -> onboardingController.withCertificate(request));
+        final OnboardingResponse response = onboardingController.withCertificate(request);
         return processResponse(request.getName(), response);
     }
 

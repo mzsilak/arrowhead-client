@@ -23,4 +23,6 @@ public interface Transport
     void delete(final URI uri) throws TransportException;
 
     void delete(final URI uri, final Object... pathParameters) throws TransportException;
+
+    void setRetryHandler(RetryHandler retryHandler);
 }

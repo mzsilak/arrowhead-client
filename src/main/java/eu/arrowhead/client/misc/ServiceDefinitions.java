@@ -27,4 +27,10 @@ public enum ServiceDefinitions
         else
         { return "Insecure" + serviceDefinition; }
     }
+
+    @Override
+    public String toString()
+    {
+        return serviceDefinition;
+    }
 }

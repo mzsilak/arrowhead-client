@@ -166,7 +166,7 @@ public class ArrowheadClientBuilder extends SSLContextBuilder<ArrowheadClientBui
             final ServiceQueryResult queryResult = serviceRegistry.query(serviceRegistryQuery);
             if (queryResult.getServiceQueryData().isEmpty())
             {
-                throw new RuntimeException("No OrchestrationService found");
+                throw new RuntimeException("No "+definition+" found");
             }
 
             final ServiceRegistryEntry registryEntry = queryResult.getServiceQueryData().get(0);

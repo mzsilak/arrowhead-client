@@ -13,9 +13,9 @@ public class ServiceClientImpl implements ArrowheadClientFacet
     protected final ArrowheadClient client;
     protected final UriUtils uriUtils;
     protected final Transport transport;
-    protected final SSLContextBuilder sslContextBuilder;
+    protected final SSLContextBuilder<?> sslContextBuilder;
 
-    public ServiceClientImpl(final ArrowheadClient client, final URI uri, final Transport transport, final SSLContextBuilder sslContextBuilder)
+    public ServiceClientImpl(final ArrowheadClient client, final URI uri, final Transport transport, final SSLContextBuilder<?> sslContextBuilder)
     {
 
         this.client = client;

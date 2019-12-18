@@ -60,6 +60,39 @@ public class RetryHandler
         throw new TransportException(throwable);
     }
 
+    public void invokeVoid(final VoidTransportInvocation method) throws TransportException
+    {
+        Throwable throwable = null;
+        for (int i = 0; i <= maxRetries; i++)
+        {
+            try
+            {
+                method.invoke();
+                break;
+            }
+            catch (final Exception e)
+            {
+                logger.warn("{}: {} - Invoking error method", e.getClass().getSimpleName(), e.getMessage());
+                throwable = e;
+            }
+
+            if (i < maxRetries)
+            {
+                logger.info("Sleeping {} {} before retry ...", delayBetweenRetries, timeUnitForRetries.name());
+                ThreadUtils.sleep(delayBetweenRetries, timeUnitForRetries);
+            }
+        }
+
+        LogUtils.printLongStackTrace(logger, Level.ERROR, throwable);
+
+        if (throwable instanceof TransportException)
+        {
+            throw (TransportException) throwable;
+        }
+
+        throw new TransportException(throwable);
+    }
+
     public <T> T invoke(final TransportInvocation<T> method) throws TransportException
     {
         return invokeWithErrorHandler(method, this::doNothing);
@@ -80,4 +113,5 @@ public class RetryHandler
         sb.append(']');
         return sb.toString();
     }
+
 }

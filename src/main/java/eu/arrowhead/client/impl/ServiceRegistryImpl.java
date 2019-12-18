@@ -12,7 +12,7 @@ import java.net.URI;
 
 public class ServiceRegistryImpl extends ServiceClientImpl implements ServiceRegistry
 {
-    public ServiceRegistryImpl(final ArrowheadClient client, final URI uri, final Transport transport, final SSLContextBuilder sslContextBuilder)
+    public ServiceRegistryImpl(final ArrowheadClient client, final URI uri, final Transport transport, final SSLContextBuilder<?> sslContextBuilder)
     {
         super(client, uri, transport, sslContextBuilder);
     }
