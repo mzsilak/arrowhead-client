@@ -12,15 +12,17 @@ import eu.arrowhead.client.transport.SecureTransport;
 import eu.arrowhead.client.transport.Transport;
 import eu.arrowhead.client.transport.TransportException;
 import eu.arrowhead.client.utils.security.SSLContextConfigurator;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.HostnameVerifier;
@@ -51,28 +53,70 @@ public class HttpTransport implements SecureTransport, Transport
         restTemplate = new RestTemplate();
         restTemplate.getMessageConverters().add(jackson);
         restTemplate.getInterceptors().add(new LoggingInterceptor());
+        restTemplate.setRequestFactory(adaptRequestFactory(new HttpComponentsClientHttpRequestFactory()));
+    }
+
+    private void closeRequestFactory(final ClientHttpRequestFactory requestFactory)
+    {
+        if(requestFactory instanceof HttpComponentsClientHttpRequestFactory)
+        {
+            try
+            {
+                ((HttpComponentsClientHttpRequestFactory) requestFactory).destroy();
+            }
+            catch (Exception e)
+            {
+                logger.warn(e.getMessage(), e);
+            }
+        }
+
+    }
+
+    private HttpComponentsClientHttpRequestFactory adaptRequestFactory(final HttpComponentsClientHttpRequestFactory requestFactory)
+    {
+        requestFactory.setConnectionRequestTimeout(3000);
+        requestFactory.setConnectTimeout(3000);
+        requestFactory.setReadTimeout(3000);
+        return requestFactory;
     }
 
     @Override
     public void setSSLContext(final SSLContext sslContext)
     {
+        final SocketConfig socketConfig = SocketConfig.custom()
+                                                      .setTcpNoDelay(true)
+                                                      .setSoReuseAddress(false)
+                                                      .setSoTimeout(5000)
+                                                      .build();
+
         final CloseableHttpClient httpClient = HttpClients.custom()
+                                                          .setDefaultSocketConfig(socketConfig)
                                                           .setSSLContext(sslContext)
                                                           .setSSLHostnameVerifier(SSLContextConfigurator.NoopHostnameVerifier.INSTANCE)
+                                                          .setRetryHandler(new DefaultHttpRequestRetryHandler(3, true))
                                                           .build();
 
-        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
+        closeRequestFactory(restTemplate.getRequestFactory());
+        restTemplate.setRequestFactory(adaptRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient)));
     }
 
     @Override
     public void setSSLContext(final SSLContext sslContext, final HostnameVerifier verifier)
     {
+        final SocketConfig socketConfig = SocketConfig.custom()
+                                                      .setTcpNoDelay(true)
+                                                      .setSoReuseAddress(false)
+                                                      .setSoTimeout(5000)
+                                                      .build();
+
         final CloseableHttpClient httpClient = HttpClients.custom()
+                                                          .setDefaultSocketConfig(socketConfig)
                                                           .setSSLContext(sslContext)
                                                           .setSSLHostnameVerifier(verifier)
                                                           .build();
 
-        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
+        closeRequestFactory(restTemplate.getRequestFactory());
+        restTemplate.setRequestFactory(adaptRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient)));
     }
 
     @Override
@@ -85,7 +129,7 @@ public class HttpTransport implements SecureTransport, Transport
             logger.info("Returning from invocation with {}", returnValue);
             return returnValue;
         }
-        catch (final RestClientException e)
+        catch (final Throwable e)
         {
             logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
             throw new TransportException(e);
@@ -102,7 +146,7 @@ public class HttpTransport implements SecureTransport, Transport
             logger.info("Returning from invocation with {}", returnValue);
             return returnValue;
         }
-        catch (final RestClientException e)
+        catch (final Throwable e)
         {
             logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
             throw new TransportException(e);
@@ -120,7 +164,7 @@ public class HttpTransport implements SecureTransport, Transport
             logger.info("Returning from invocation with {}", returnValue);
             return returnValue;
         }
-        catch (final RestClientException e)
+        catch (final Throwable e)
         {
             logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
             throw new TransportException(e);
@@ -137,7 +181,7 @@ public class HttpTransport implements SecureTransport, Transport
             logger.info("Returning from invocation with {}", returnValue);
             return returnValue;
         }
-        catch (final RestClientException e)
+        catch (final Throwable e)
         {
             logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
             throw new TransportException(e);
@@ -152,7 +196,7 @@ public class HttpTransport implements SecureTransport, Transport
             logger.info("Invoking method: void put({}, {})", uri.toASCIIString(), body);
             restTemplate.put(uri, body);
         }
-        catch (final RestClientException e)
+        catch (final Throwable e)
         {
             logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
             throw new TransportException(e);
@@ -168,7 +212,7 @@ public class HttpTransport implements SecureTransport, Transport
             restTemplate.put(uri.toASCIIString(), body, pathParameters);
             logger.info("Returning from void invocation");
         }
-        catch (final RestClientException e)
+        catch (final Throwable e)
         {
             logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
             throw new TransportException(e);
@@ -185,7 +229,7 @@ public class HttpTransport implements SecureTransport, Transport
             logger.info("Returning from invocation with {}", returnValue);
             return returnValue;
         }
-        catch (final RestClientException e)
+        catch (final Throwable e)
         {
             logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
             throw new TransportException(e);
@@ -202,9 +246,7 @@ public class HttpTransport implements SecureTransport, Transport
             logger.info("Returning from invocation with {}", returnValue);
             return returnValue;
         }
-        catch (
-                final RestClientException e)
-
+        catch (final Throwable e)
         {
             logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
             throw new TransportException(e);
@@ -220,7 +262,7 @@ public class HttpTransport implements SecureTransport, Transport
             restTemplate.delete(uri);
             logger.info("Returning from void invocation");
         }
-        catch (final RestClientException e)
+        catch (final Throwable e)
         {
             logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
             throw new TransportException(e);
@@ -236,7 +278,7 @@ public class HttpTransport implements SecureTransport, Transport
             restTemplate.delete(uri.toASCIIString(), pathParameters);
             logger.info("Returning from void invocation");
         }
-        catch (final RestClientException e)
+        catch (final Throwable e)
         {
             logger.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
             throw new TransportException(e);
