@@ -16,6 +16,8 @@ import eu.arrowhead.client.utils.security.SSLContextConfigurator;
 import org.apache.http.HttpRequest;
 import org.apache.http.client.HttpClient;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.NoConnectionReuseStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.logging.log4j.LogManager;
@@ -74,6 +76,12 @@ public class HttpTransport implements SecureTransport, Transport
         {
             try
             {
+                final HttpClient httpClient = ((HttpComponentsClientHttpRequestFactory) requestFactory).getHttpClient();
+                if (httpClient instanceof CloseableHttpClient)
+                {
+                    ((CloseableHttpClient) httpClient).close();
+                }
+
                 ((HttpComponentsClientHttpRequestFactory) requestFactory).destroy();
             }
             catch (Exception e)
@@ -104,7 +112,10 @@ public class HttpTransport implements SecureTransport, Transport
 
     private HttpClient createHttpClient()
     {
-        return HttpClients.createDefault();
+        return HttpClients.custom()
+                          .setConnectionReuseStrategy(new NoConnectionReuseStrategy())
+                          .setConnectionTimeToLive(1, TimeUnit.MINUTES)
+                          .build();
     }
 
     private HttpClient createHttpClient(final SSLContext sslContext)
@@ -119,6 +130,8 @@ public class HttpTransport implements SecureTransport, Transport
                           .setSSLContext(sslContext)
                           .setSSLHostnameVerifier(verifier)
                           .setRetryHandler(new CustomRetryHandler())
+                          .setConnectionReuseStrategy(new NoConnectionReuseStrategy())
+                          .setConnectionTimeToLive(1, TimeUnit.MINUTES)
                           .build();
     }
 
